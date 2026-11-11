@@ -260,7 +260,7 @@ Get order book data for a stock with the latest date or historical data at speci
 | `code (path)` | `string` | yes |  | Kode saham emiten yang tercatat di BEI, mis. `BBCA`. Tidak case-sensitive. Daftar kode tersedia di `/analysis/list/stock`. |
 | `params.Market` | `OrderBookMarket` | yes |  | Jenis pasar: `RG` = Pasar Reguler, `NG` = Pasar Negosiasi, `TN` = Pasar Tunai. Gunakan `RG` untuk analisis pergerakan harga pada umumnya. One of: RG, NG, TN. |
 | `params.Date` | `*string` | no |  | Tanggal order book historis (`YYYY-MM-DD`), tersedia mulai `2026-03-25`. Wajib dikirim bersama `time`; kosongkan keduanya untuk data realtime. |
-| `params.Time` | `*string` | no |  | Jam snapshot order book dalam WIB, format `HH:mm` pada jam perdagangan (09:00–15:59). Wajib dikirim bersama `date`. |
+| `params.Time` | `*string` | no |  | Jam snapshot order book dalam WIB, format `HH:mm` atau `HH:mm:ss` pada jam perdagangan (09:00–15:59); mengembalikan snapshot terdekat pada tanggal tersebut. Wajib dikirim bersama `date`. |
 
 Returns: `*OrderBookResponse`
 
@@ -540,6 +540,23 @@ Get latest shareholder data with investor classifications in table format.
 | `code (path)` | `string` | yes |  | Kode saham emiten yang tercatat di BEI, mis. `BBCA`. Tidak case-sensitive. Daftar kode tersedia di `/analysis/list/stock`. |
 
 Returns: `*ShareholderClassifyTableResponse`
+
+### GetFreeFloat
+
+**Stock Free Float** — `GET /analysis/free-float/{code}` — cache: **default**
+
+```go
+func (s *AnalysisService) GetFreeFloat(ctx context.Context, code string, params FreeFloatParams) ([]FreeFloatItem, error)
+```
+
+Get the issuer's monthly free float share data for a specific period.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `code (path)` | `string` | yes |  | Kode saham emiten yang tercatat di BEI, mis. `BBCA`. Tidak case-sensitive. Daftar kode tersedia di `/analysis/list/stock`. |
+| `params.Range` | `int64` | yes |  | Jumlah bulan terakhir yang ditampilkan, mis. `6` untuk 6 bulan terakhir. Akun TRIAL dibatasi maksimal 12 bulan. Range: 1..36. |
+
+Returns: `[]FreeFloatItem`
 
 ### GetSummaryStock
 
@@ -1088,6 +1105,24 @@ Get chart data for key statistics visualization for a specific period.
 
 Returns: `*KeystatChartResponse`
 
+### GetFlowOfFunds
+
+**Stock Flow of Funds** — `GET /analysis/flow-of-funds/{code}` — cache: **default**
+
+```go
+func (s *AnalysisService) GetFlowOfFunds(ctx context.Context, code string, params FlowOfFundsParams) (*FlowOfFundsResponse, error)
+```
+
+Get a company's income statement flow of funds (Sankey) per period: revenue by product/service, cost of revenue and its breakdown, operating expenses, operating profit, profit before tax, tax, net profit and profit attributable to the parent.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `code (path)` | `string` | yes |  | Kode saham emiten yang tercatat di BEI, mis. `BBCA`. Tidak case-sensitive. Daftar kode tersedia di `/analysis/list/stock`. |
+| `params.Type` | `FlowOfFundsType` | yes |  | Periode laporan: `FY` = tahunan, `Q` = seluruh kuartal, `Q1`–`Q4` = kuartal tertentu. One of: FY, Q, Q1, Q2, Q3, Q4. |
+| `params.Limit` | `*int64` | no | `8` | Jumlah periode terakhir yang ditampilkan. Default: 8. Range: 1..8. |
+
+Returns: `*FlowOfFundsResponse`
+
 ### GetCalendar
 
 **Stock Corporate Action Calendar** — `GET /analysis/calendar` — cache: **default**
@@ -1133,13 +1168,14 @@ Returns: `*NewsResponse`
 func (s *AnalysisService) GetDisclosure(ctx context.Context, params *DisclosureParams) (*DisclosureResponse, error)
 ```
 
-Get the IDX disclosure listing (REPORT-category posts).
+Get the IDX disclosure listing.
 
 | Parameter | Type | Required | Default | Description |
 |---|---|---|---|---|
 | `params.Page` | `*int64` | no | `1` | Nomor halaman, dimulai dari 1. Default: 1. Range: 1..-. |
 | `params.Limit` | `*int64` | no | `20` | Jumlah data per halaman, 1-100. Default: 20. Range: 1..100. |
 | `params.Code` | `*string` | no |  | Filter kode saham, mis. `BBCA` (opsional). |
+| `params.Type` | `*DisclosureType` | no |  | Filter tipe laporan (opsional, huruf besar/kecil bebas). One of: shareholder, financial, rups, volatility_explanation, press_release, public_expose, right_issue, dividen, ad_publication, use_of_proceeds, exchange_clarification, trading_suspension, operational_report, annual_report, financial_info, rating, structured_warrant, bond, management, buyback, ownership, capital_action, public_offering, material_transaction, agreement, corporate_group, articles_identity, legal, material_info, other. |
 
 Returns: `*DisclosureResponse`
 
@@ -1367,7 +1403,7 @@ Get the API usage log history (requests made with an API key) of the authenticat
 | `params.From` | `*string` | no |  | Waktu awal dalam WIB, format `YYYY-MM-DD HH:mm:ss` atau `YYYY-MM-DD`. Maksimal 30 hari ke belakang. Default 24 jam terakhir. |
 | `params.To` | `*string` | no |  | Waktu akhir dalam WIB, format `YYYY-MM-DD HH:mm:ss` atau `YYYY-MM-DD`. Harus lebih besar atau sama dengan `from`. Default waktu saat ini. |
 | `params.Status` | `*int64` | no |  | Filter log berdasarkan HTTP status code, mis. `200`, `422`, atau `429`. Range: 100..599. |
-| `params.Limit` | `*int64` | no |  | Jumlah log maksimal yang dikembalikan. Kosongkan untuk mengambil seluruh log. Range: 1..320000. |
+| `params.Limit` | `*int64` | no |  | Jumlah log maksimal yang dikembalikan. Kosongkan untuk mengambil seluruh log. Range: 1..520000. |
 
 Returns: `[]UsageLogsItem`
 

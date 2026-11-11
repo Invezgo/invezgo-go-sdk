@@ -468,7 +468,7 @@ func (s *AnalysisService) GetIntradayChart(ctx context.Context, code string, par
 //
 // Historical Parameters:
 // - date: Date in YYYY-MM-DD format (optional, minimum 2026-03-25)
-// - time: Time in HH:MM format with minute precision (optional)
+// - time: WIB time in HH:MM or HH:MM:SS format (optional); nearest snapshot on that date
 // - Note: date and time MUST be filled together or both empty
 //
 // Update: Real-time (without date/time) or Historical (with date/time)
@@ -925,6 +925,8 @@ func (s *AnalysisService) GetShareholderKSEI(ctx context.Context, code string, p
 // Response:
 // - code: Stock code
 // - date: Data date (WIB (UTC+7) DateTime, e.g. 2026-10-16T00:00:00.000Z = 16 Oct 2026 00:00 WIB; the Z suffix does not mean UTC, do not convert the time zone); the latest `range` monthly periods, oldest first
+// - local_{xx} / foreign_{xx}: Shares held by domestic / foreign investors for each classification code {xx} below (e.g. local_bk, foreign_bk) (shares, string)
+// - {xx}: local_{xx} + foreign_{xx} (shares, string)
 // - bk: Shares held by Bank investors (shares, string)
 // - gv: Shares held by Government investors (shares, string)
 // - pe: Shares held by Private Equity investors (shares, string)
@@ -964,6 +966,8 @@ func (s *AnalysisService) GetShareholderKSEI(ctx context.Context, code string, p
 // - is: Shares held by Insurance investors (shares, string)
 // - fd: Shares held by Foundation investors (shares, string)
 // - in: Shares held by Individual investors (shares, string)
+// - total_foreign: Total shares held by foreign investors (shares, string)
+// - total_local: Total shares held by domestic investors (shares, string)
 // - total: Total shares across all classifications (shares, string)
 //
 // Investor Classification:
@@ -1023,6 +1027,8 @@ func (s *AnalysisService) GetShareholderClassification(ctx context.Context, code
 //
 // Response:
 // - code: Stock code (response is a single latest-record object, without a date field; null if no data)
+// - local_{xx} / foreign_{xx}: Shares held by domestic / foreign investors for each classification code {xx} below (e.g. local_bk, foreign_bk) (shares, string)
+// - {xx}: local_{xx} + foreign_{xx} (shares, string)
 // - bk: Shares held by Bank investors (shares, string)
 // - gv: Shares held by Government investors (shares, string)
 // - pe: Shares held by Private Equity investors (shares, string)
@@ -1062,6 +1068,8 @@ func (s *AnalysisService) GetShareholderClassification(ctx context.Context, code
 // - is: Shares held by Insurance investors (shares, string)
 // - fd: Shares held by Foundation investors (shares, string)
 // - in: Shares held by Individual investors (shares, string)
+// - total_foreign: Total shares held by foreign investors (shares, string)
+// - total_local: Total shares held by domestic investors (shares, string)
 // - total: Total shares across all classifications (shares, string)
 //
 // Investor Classification:
@@ -1112,6 +1120,44 @@ func (s *AnalysisService) GetShareholderClassification(ctx context.Context, code
 func (s *AnalysisService) GetShareholderClassifyTable(ctx context.Context, code string) (*ShareholderClassifyTableResponse, error) {
 	var out *ShareholderClassifyTableResponse
 	err := s.c.do(ctx, request{method: "GET", route: "/analysis/shareholder/classify-table/{code}", path: "/analysis/shareholder/classify-table/" + url.PathEscape(code), query: nil, body: nil, tier: tierDefault}, &out)
+	return out, err
+}
+
+// GetFreeFloat — Stock Free Float.
+//
+// Get the issuer's monthly free float share data for a specific period.
+//
+// Response:
+// - code: Stock code
+// - date: Data date (WIB (UTC+7) DateTime, e.g. 2026-10-16T00:00:00.000Z = 16 Oct 2026 00:00 WIB; the Z suffix does not mean UTC, do not convert the time zone); the latest `range` monthly periods, oldest first
+// - public: Scripless shares held by all shareholders with less than 5% (shares, string)
+// - management: Scripless shares held by the Board of Directors and Commissioners, less than 5% (shares, string)
+// - controller: Scripless shares held by the Controller, less than 5% (shares, string)
+// - affiliate: Scripless shares held by Affiliates of the Controller, less than 5% (shares, string)
+// - treasury: Scripless treasury shares, less than 5% (shares, string)
+// - lock_up: Shares under a transfer restriction (lock up), less than 5% (shares, string)
+// - private: Scripless shares held by Venture Capital and Private Equity firms, less than 5% (shares, string)
+// - law: Scripless shares seized or blocked by law enforcement or a competent authority, less than 5% (shares, string)
+// - other: Shares whose beneficial owners are public investors approved by the Exchange to count as Free Float (shares, string)
+// - total: Free Float shares (shares, string)
+// - share: Shares listed on the Exchange at month end (shares, string)
+// - free: Free Float percentage (%, number, e.g. 48.01)
+// - not_record_value_prev: Unlisted shares, previous month (shares, string; null if absent)
+// - not_record_pct_prev: Unlisted shares percentage, previous month (%, number; null if absent)
+// - not_record_value_next: Unlisted shares, current month (shares, string; null if absent)
+// - not_record_pct_next: Unlisted shares percentage, current month (%, number; null if absent)
+//
+// Update: Monthly according to each company's report
+//
+// Initial Data: 2026-09-01 [ENTERPRISE]
+//
+// Path parameters:
+//   - code: Kode saham emiten yang tercatat di BEI, mis. `BBCA`. Tidak case-sensitive. Daftar kode tersedia di `/analysis/list/stock`. Required.
+//
+// HTTP: GET /analysis/free-float/{code} (cache: default TTL).
+func (s *AnalysisService) GetFreeFloat(ctx context.Context, code string, params FreeFloatParams) ([]FreeFloatItem, error) {
+	var out []FreeFloatItem
+	err := s.c.do(ctx, request{method: "GET", route: "/analysis/free-float/{code}", path: "/analysis/free-float/" + url.PathEscape(code), query: params.values(), body: nil, tier: tierDefault}, &out)
 	return out, err
 }
 
@@ -1850,6 +1896,8 @@ func (s *AnalysisService) GetInsiderChart(ctx context.Context, code string, para
 //
 // Get company financial statement data based on report type and specific period.
 //
+// Income statement (IS) and cash flow (CF) periods are cumulative from the start of the fiscal year (year to date), as officially filed with IDX: Q1 = 3 months, Q2 = 6 months, Q3 = 9 months, FY = 12 months; values are not netted against the previous period. Balance sheet (BS) values are balances at period end.
+//
 // Response:
 // - columns: List of report periods from the latest, up to `limit` periods (default 8); null if there are no reports, each item contains:
 //   - label: Period label, e.g. "Q2 2025" or "FY 2024"
@@ -1889,6 +1937,8 @@ func (s *AnalysisService) GetFinancialStatement(ctx context.Context, code string
 //
 // Get chart data for financial statement visualization for a specific period.
 //
+// Income statement (IS) and cash flow (CF) periods are cumulative from the start of the fiscal year (year to date), as officially filed with IDX: Q1 = 3 months, Q2 = 6 months, Q3 = 9 months, FY = 12 months; values are not netted against the previous period. Balance sheet (BS) values are balances at period end.
+//
 // Response:
 // - account_id: Charted account ID (matches the `account` parameter); null if the account is not found
 // - name: Financial statement account name; null if the account is not found
@@ -1916,6 +1966,8 @@ func (s *AnalysisService) GetFinancialStatementChart(ctx context.Context, code s
 // GetKeystat — Stock Key Statistics.
 //
 // Get key statistics and important financial metrics of a company for a specific period.
+//
+// The source is the issuer's official IDX financial report, which is cumulative from the start of the fiscal year (year to date): Q1 = 3 months, Q2 = 6 months, Q3 = 9 months, FY = 12 months. Statistics ending in (Quarter) use a single quarter: income statement and cash flow items = the cumulative report less the previous quarter's cumulative report, balance sheet items = period-end balances. (TTM) = trailing 12 months, (Annualised) = year to date annualised.
 //
 // Response:
 // - columns: List of report periods from the latest, up to `limit` periods (default 8); null if there are no reports, each item contains:
@@ -1952,6 +2004,8 @@ func (s *AnalysisService) GetKeystat(ctx context.Context, code string, params Ke
 //
 // Get chart data for key statistics visualization for a specific period.
 //
+// The source is the issuer's official IDX financial report, which is cumulative from the start of the fiscal year (year to date): Q1 = 3 months, Q2 = 6 months, Q3 = 9 months, FY = 12 months. Statistics ending in (Quarter) use a single quarter: income statement and cash flow items = the cumulative report less the previous quarter's cumulative report, balance sheet items = period-end balances. (TTM) = trailing 12 months, (Annualised) = year to date annualised.
+//
 // Response:
 // - name: Key statistic name (matches the `name` parameter); null if there are no periods
 // - points: Data points per period from the latest, up to `limit` periods (max 8 for quarterly, 3 for FY); null if there are no periods, each item contains:
@@ -1972,6 +2026,42 @@ func (s *AnalysisService) GetKeystat(ctx context.Context, code string, params Ke
 func (s *AnalysisService) GetKeystatChart(ctx context.Context, code string, params KeystatChartParams) (*KeystatChartResponse, error) {
 	var out *KeystatChartResponse
 	err := s.c.do(ctx, request{method: "GET", route: "/analysis/keystat-chart/{code}", path: "/analysis/keystat-chart/" + url.PathEscape(code), query: params.values(), body: nil, tier: tierDefault}, &out)
+	return out, err
+}
+
+// GetFlowOfFunds — Stock Flow of Funds.
+//
+// Get a company's income statement flow of funds (Sankey) per period: revenue by product/service, cost of revenue and its breakdown, operating expenses, operating profit, profit before tax, tax, net profit and profit attributable to the parent.
+//
+// The structure and direction of every flow follow the calculation arcs of the issuer's IDX XBRL taxonomy industry template. Revenue detail comes from the revenue-by-type note and cost detail from the cost of goods sold note.
+//
+// Each period is cumulative from the start of the fiscal year (year to date), as officially filed with IDX and the same as financial-statement: Q1 = 3 months, Q2 = 6 months, Q3 = 9 months, FY = 12 months; values are not netted against the previous period. type=Q lists the quarterly reports (Q1-Q3) without the annual report.
+//
+// Response:
+// - columns: Periods from the latest (label, year, period)
+// - role: IDX taxonomy income statement role used, e.g. "1321000"
+// - sector: Industry template (general, property, infrastructure, financesharia, securities, insurance, financing)
+// - currency: Currency of the values (IDR)
+// - periods: Flow of funds per period, same order as `columns`, each item contains:
+//   - label, year, period: Report period, e.g. "Q2 2026" (6 months) or "FY 2025"
+//   - basis: quarter (Q1, 3 months), ytd (Q2/Q3, cumulative from the start of the fiscal year), annual (FY)
+//   - nodes: Nodes (id, taxonomy concept, label_id, label_en, kind: revenue|cost|income|profit|loss|offset, value)
+//   - links: Flows between nodes (source, target, value > 0); every node balances (in = out)
+//   - bridge: Operating profit to net profit bridge (id, label_id, label_en, kind: total|delta, value)
+//   - checks: Reconciliation of the detail against the statement: statement, segments, cogs (ok, residual, mismatch, none) and unmapped_rows
+//
+// Update: Real-time according to each company's report
+//
+// Limited to data for the last 2 years
+// Initial Data: 2020-01-01 [ENTERPRISE]
+//
+// Path parameters:
+//   - code: Kode saham emiten yang tercatat di BEI, mis. `BBCA`. Tidak case-sensitive. Daftar kode tersedia di `/analysis/list/stock`. Required.
+//
+// HTTP: GET /analysis/flow-of-funds/{code} (cache: default TTL).
+func (s *AnalysisService) GetFlowOfFunds(ctx context.Context, code string, params FlowOfFundsParams) (*FlowOfFundsResponse, error) {
+	var out *FlowOfFundsResponse
+	err := s.c.do(ctx, request{method: "GET", route: "/analysis/flow-of-funds/{code}", path: "/analysis/flow-of-funds/" + url.PathEscape(code), query: params.values(), body: nil, tier: tierDefault}, &out)
 	return out, err
 }
 
@@ -2019,17 +2109,20 @@ func (s *AnalysisService) GetNews(ctx context.Context, params *NewsParams) (*New
 
 // GetDisclosure — Stock Disclosure Information.
 //
-// Get the IDX disclosure listing (REPORT-category posts).
+// Get the IDX disclosure listing.
 //
 // Response:
 // - totalPage: Total pages based on limit
 // - page: Current page
 // - nextPage: Next page number, null on the last page
 // - data: IDX disclosure list (newest first), each item contains:
+//   - id: Report id
 //   - title: Report title
 //   - code: Issuer stock code
 //   - date: Publication time in WIB, format YYYY-MM-DDTHH:MM:SS
 //   - type: Report type (e.g. public_expose)
+//   - description: Report description, null when absent
+//   - summary: Report summary points
 //   - list: Attachment file list, each item contains:
 //   - url: Attachment file URL on IDX
 //   - name: Attachment file name

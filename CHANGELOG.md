@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented in this file.
 
+## v2.1.0
+
+Regenerated from the latest OpenAPI spec (Invezgo API 1.2, 109 endpoints).
+
+### Added
+- `client.Analysis.GetFlowOfFunds(ctx, code, FlowOfFundsParams{...})`: Flow of Funds (revenue → profit flow per period, with nodes, links and bridge) for `/analysis/flow-of-funds/{code}`.
+- `client.Analysis.GetFreeFloat(ctx, code, FreeFloatParams{...})`: free float composition over time for `/analysis/free-float/{code}`.
+- `type` filter on `client.Analysis.GetDisclosure` (30 disclosure categories).
+- `id` field on disclosure items; `foreign_*` breakdown fields on shareholder classification and classify-table responses.
+
+### Changed
+- Screener and alert `formula` now accepts up to 2048 characters.
+- Order book `time` accepts `HH:mm:ss` as well as `HH:mm`.
+- Usage logs `limit` maximum raised to 520000.
+
 ## v2.0.0
 
 Major release: the SDK is rebuilt and generated from the official OpenAPI specification (Invezgo API 1.2).

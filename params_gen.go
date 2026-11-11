@@ -700,6 +700,19 @@ const (
 	KeystatChartTypeQ4 KeystatChartType = "Q4"
 )
 
+// FlowOfFundsType is the allowed value set of the `type` parameter of Analysis.GetFlowOfFunds.
+type FlowOfFundsType string
+
+// Allowed FlowOfFundsType values.
+const (
+	FlowOfFundsTypeFY FlowOfFundsType = "FY"
+	FlowOfFundsTypeQ  FlowOfFundsType = "Q"
+	FlowOfFundsTypeQ1 FlowOfFundsType = "Q1"
+	FlowOfFundsTypeQ2 FlowOfFundsType = "Q2"
+	FlowOfFundsTypeQ3 FlowOfFundsType = "Q3"
+	FlowOfFundsTypeQ4 FlowOfFundsType = "Q4"
+)
+
 // CalendarType is the allowed value set of the `type` parameter of Analysis.GetCalendar.
 type CalendarType string
 
@@ -760,6 +773,43 @@ const (
 	PostsListByStockCategoryCategoryVIDEO     PostsListByStockCategoryCategory = "VIDEO"
 	PostsListByStockCategoryCategorySTOCKPICK PostsListByStockCategoryCategory = "STOCKPICK"
 	PostsListByStockCategoryCategoryPOLLING   PostsListByStockCategoryCategory = "POLLING"
+)
+
+// DisclosureType is the allowed value set of the `type` parameter of Analysis.GetDisclosure.
+type DisclosureType string
+
+// Allowed DisclosureType values.
+const (
+	DisclosureTypeShareholder           DisclosureType = "shareholder"
+	DisclosureTypeFinancial             DisclosureType = "financial"
+	DisclosureTypeRups                  DisclosureType = "rups"
+	DisclosureTypeVolatilityExplanation DisclosureType = "volatility_explanation"
+	DisclosureTypePressRelease          DisclosureType = "press_release"
+	DisclosureTypePublicExpose          DisclosureType = "public_expose"
+	DisclosureTypeRightIssue            DisclosureType = "right_issue"
+	DisclosureTypeDividen               DisclosureType = "dividen"
+	DisclosureTypeAdPublication         DisclosureType = "ad_publication"
+	DisclosureTypeUseOfProceeds         DisclosureType = "use_of_proceeds"
+	DisclosureTypeExchangeClarification DisclosureType = "exchange_clarification"
+	DisclosureTypeTradingSuspension     DisclosureType = "trading_suspension"
+	DisclosureTypeOperationalReport     DisclosureType = "operational_report"
+	DisclosureTypeAnnualReport          DisclosureType = "annual_report"
+	DisclosureTypeFinancialInfo         DisclosureType = "financial_info"
+	DisclosureTypeRating                DisclosureType = "rating"
+	DisclosureTypeStructuredWarrant     DisclosureType = "structured_warrant"
+	DisclosureTypeBond                  DisclosureType = "bond"
+	DisclosureTypeManagement            DisclosureType = "management"
+	DisclosureTypeBuyback               DisclosureType = "buyback"
+	DisclosureTypeOwnership             DisclosureType = "ownership"
+	DisclosureTypeCapitalAction         DisclosureType = "capital_action"
+	DisclosureTypePublicOffering        DisclosureType = "public_offering"
+	DisclosureTypeMaterialTransaction   DisclosureType = "material_transaction"
+	DisclosureTypeAgreement             DisclosureType = "agreement"
+	DisclosureTypeCorporateGroup        DisclosureType = "corporate_group"
+	DisclosureTypeArticlesIdentity      DisclosureType = "articles_identity"
+	DisclosureTypeLegal                 DisclosureType = "legal"
+	DisclosureTypeMaterialInfo          DisclosureType = "material_info"
+	DisclosureTypeOther                 DisclosureType = "other"
 )
 
 // UmaParams holds the query parameters of Analysis.GetUma. Pointer fields are optional; use invezgo.Ptr(v) to set them.
@@ -1068,7 +1118,7 @@ type OrderBookParams struct {
 	Market OrderBookMarket
 	// Tanggal order book historis (`YYYY-MM-DD`), tersedia mulai `2026-03-25`. Wajib dikirim bersama `time`; kosongkan keduanya untuk data realtime.
 	Date *string
-	// Jam snapshot order book dalam WIB, format `HH:mm` pada jam perdagangan (09:00–15:59). Wajib dikirim bersama `date`.
+	// Jam snapshot order book dalam WIB, format `HH:mm` atau `HH:mm:ss` pada jam perdagangan (09:00–15:59); mengembalikan snapshot terdekat pada tanggal tersebut. Wajib dikirim bersama `date`.
 	Time *string
 }
 
@@ -1342,6 +1392,21 @@ type ShareholderClassificationParams struct {
 }
 
 func (p *ShareholderClassificationParams) values() url.Values {
+	v := url.Values{}
+	if p == nil {
+		return v
+	}
+	v.Set("range", strconv.FormatInt(p.Range, 10))
+	return v
+}
+
+// FreeFloatParams holds the query parameters of Analysis.GetFreeFloat. Pointer fields are optional; use invezgo.Ptr(v) to set them.
+type FreeFloatParams struct {
+	// Jumlah bulan terakhir yang ditampilkan, mis. `6` untuk 6 bulan terakhir. Akun TRIAL dibatasi maksimal 12 bulan. Range: 1..36. Required.
+	Range int64
+}
+
+func (p *FreeFloatParams) values() url.Values {
 	v := url.Values{}
 	if p == nil {
 		return v
@@ -2172,6 +2237,27 @@ func (p *KeystatChartParams) values() url.Values {
 	return v
 }
 
+// FlowOfFundsParams holds the query parameters of Analysis.GetFlowOfFunds. Pointer fields are optional; use invezgo.Ptr(v) to set them.
+type FlowOfFundsParams struct {
+	// Periode laporan: `FY` = tahunan, `Q` = seluruh kuartal, `Q1`–`Q4` = kuartal tertentu. One of: FY, Q, Q1, Q2, Q3, Q4. Required.
+	Type FlowOfFundsType
+	// Jumlah periode terakhir yang ditampilkan. Default: 8. Range: 1..8.
+	Limit *int64
+}
+
+func (p *FlowOfFundsParams) values() url.Values {
+	v := url.Values{}
+	if p == nil {
+		return v
+	}
+	v.Set("type", string(p.Type))
+	if p.Limit != nil {
+		x := *p.Limit
+		v.Set("limit", strconv.FormatInt(x, 10))
+	}
+	return v
+}
+
 // CalendarParams holds the query parameters of Analysis.GetCalendar. Pointer fields are optional; use invezgo.Ptr(v) to set them.
 type CalendarParams struct {
 	// Filter hasil untuk satu kode saham tertentu.
@@ -2327,7 +2413,7 @@ type UsageLogsParams struct {
 	To *string
 	// Filter log berdasarkan HTTP status code, mis. `200`, `422`, atau `429`. Range: 100..599.
 	Status *int64
-	// Jumlah log maksimal yang dikembalikan. Kosongkan untuk mengambil seluruh log. Range: 1..320000.
+	// Jumlah log maksimal yang dikembalikan. Kosongkan untuk mengambil seluruh log. Range: 1..520000.
 	Limit *int64
 }
 
@@ -2630,6 +2716,8 @@ type DisclosureParams struct {
 	Limit *int64
 	// Filter kode saham, mis. `BBCA` (opsional).
 	Code *string
+	// Filter tipe laporan (opsional, huruf besar/kecil bebas). One of: shareholder, financial, rups, volatility_explanation, press_release, public_expose, right_issue, dividen, ad_publication, use_of_proceeds, exchange_clarification, trading_suspension, operational_report, annual_report, financial_info, rating, structured_warrant, bond, management, buyback, ownership, capital_action, public_offering, material_transaction, agreement, corporate_group, articles_identity, legal, material_info, other.
+	Type *DisclosureType
 }
 
 func (p *DisclosureParams) values() url.Values {
@@ -2648,6 +2736,10 @@ func (p *DisclosureParams) values() url.Values {
 	if p.Code != nil {
 		x := *p.Code
 		v.Set("code", x)
+	}
+	if p.Type != nil {
+		x := *p.Type
+		v.Set("type", string(x))
 	}
 	return v
 }

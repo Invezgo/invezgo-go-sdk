@@ -86,7 +86,8 @@ type AlertRequest struct {
 	Every    string   `json:"every"`
 	Send     string   `json:"send"`
 	Scope    []string `json:"scope,omitempty"`
-	Formula  string   `json:"formula"`
+	// Formula alert (sama dengan batas formula screener)
+	Formula string `json:"formula"`
 }
 
 // TestAlertRequest — Request body.
@@ -104,8 +105,9 @@ type UpdateAlertRequest struct {
 	Category []string `json:"category,omitempty"`
 	Every    string   `json:"every"`
 	Send     string   `json:"send"`
-	Formula  string   `json:"formula"`
-	Scope    []string `json:"scope,omitempty"`
+	// Formula alert (sama dengan batas formula screener)
+	Formula string   `json:"formula"`
+	Scope   []string `json:"scope,omitempty"`
 }
 
 // NoteTradeRequest — Request body.
@@ -979,84 +981,244 @@ type ShareholderClassificationItem struct {
 	Code string `json:"code"`
 	// Data date; WIB wall-clock DateTime with a literal Z suffix (not UTC), e.g. 2026-10-16T00:00:00.000Z
 	Date string `json:"date"`
-	// Shares held by Bank investors (shares) (numeric string)
+	// Shares held by domestic Bank investors (shares) (numeric string)
+	LocalBk string `json:"local_bk"`
+	// Shares held by foreign Bank investors (shares) (numeric string)
+	ForeignBk string `json:"foreign_bk"`
+	// Shares held by Bank investors, local_bk + foreign_bk (shares) (numeric string)
 	Bk string `json:"bk"`
-	// Shares held by Government investors (shares) (numeric string)
+	// Shares held by domestic Government investors (shares) (numeric string)
+	LocalGv string `json:"local_gv"`
+	// Shares held by foreign Government investors (shares) (numeric string)
+	ForeignGv string `json:"foreign_gv"`
+	// Shares held by Government investors, local_gv + foreign_gv (shares) (numeric string)
 	Gv string `json:"gv"`
-	// Shares held by Private Equity investors (shares) (numeric string)
+	// Shares held by domestic Private Equity investors (shares) (numeric string)
+	LocalPe string `json:"local_pe"`
+	// Shares held by foreign Private Equity investors (shares) (numeric string)
+	ForeignPe string `json:"foreign_pe"`
+	// Shares held by Private Equity investors, local_pe + foreign_pe (shares) (numeric string)
 	Pe string `json:"pe"`
-	// Shares held by Trustee Bank investors (shares) (numeric string)
+	// Shares held by domestic Trustee Bank investors (shares) (numeric string)
+	LocalTb string `json:"local_tb"`
+	// Shares held by foreign Trustee Bank investors (shares) (numeric string)
+	ForeignTb string `json:"foreign_tb"`
+	// Shares held by Trustee Bank investors, local_tb + foreign_tb (shares) (numeric string)
 	Tb string `json:"tb"`
-	// Shares held by Venture Capital investors (shares) (numeric string)
+	// Shares held by domestic Venture Capital investors (shares) (numeric string)
+	LocalVc string `json:"local_vc"`
+	// Shares held by foreign Venture Capital investors (shares) (numeric string)
+	ForeignVc string `json:"foreign_vc"`
+	// Shares held by Venture Capital investors, local_vc + foreign_vc (shares) (numeric string)
 	Vc string `json:"vc"`
-	// Shares held by Private Bank investors (shares) (numeric string)
+	// Shares held by domestic Private Bank investors (shares) (numeric string)
+	LocalPb string `json:"local_pb"`
+	// Shares held by foreign Private Bank investors (shares) (numeric string)
+	ForeignPb string `json:"foreign_pb"`
+	// Shares held by Private Bank investors, local_pb + foreign_pb (shares) (numeric string)
 	Pb string `json:"pb"`
-	// Shares held by Exchange Traded Fund (ETF) investors (shares) (numeric string)
+	// Shares held by domestic Exchange Traded Fund (ETF) investors (shares) (numeric string)
+	LocalEf string `json:"local_ef"`
+	// Shares held by foreign Exchange Traded Fund (ETF) investors (shares) (numeric string)
+	ForeignEf string `json:"foreign_ef"`
+	// Shares held by Exchange Traded Fund (ETF) investors, local_ef + foreign_ef (shares) (numeric string)
 	Ef string `json:"ef"`
-	// Shares held by Investment Manager investors (shares) (numeric string)
+	// Shares held by domestic Investment Manager investors (shares) (numeric string)
+	LocalIm string `json:"local_im"`
+	// Shares held by foreign Investment Manager investors (shares) (numeric string)
+	ForeignIm string `json:"foreign_im"`
+	// Shares held by Investment Manager investors, local_im + foreign_im (shares) (numeric string)
 	Im string `json:"im"`
-	// Shares held by Investment Advisor investors (shares) (numeric string)
+	// Shares held by domestic Investment Advisor investors (shares) (numeric string)
+	LocalIa string `json:"local_ia"`
+	// Shares held by foreign Investment Advisor investors (shares) (numeric string)
+	ForeignIa string `json:"foreign_ia"`
+	// Shares held by Investment Advisor investors, local_ia + foreign_ia (shares) (numeric string)
 	Ia string `json:"ia"`
-	// Shares held by Brokerage Firm investors (shares) (numeric string)
+	// Shares held by domestic Brokerage Firm investors (shares) (numeric string)
+	LocalBr string `json:"local_br"`
+	// Shares held by foreign Brokerage Firm investors (shares) (numeric string)
+	ForeignBr string `json:"foreign_br"`
+	// Shares held by Brokerage Firm investors, local_br + foreign_br (shares) (numeric string)
 	Br string `json:"br"`
-	// Shares held by Hedge Fund investors (shares) (numeric string)
+	// Shares held by domestic Hedge Fund investors (shares) (numeric string)
+	LocalHf string `json:"local_hf"`
+	// Shares held by foreign Hedge Fund investors (shares) (numeric string)
+	ForeignHf string `json:"foreign_hf"`
+	// Shares held by Hedge Fund investors, local_hf + foreign_hf (shares) (numeric string)
 	Hf string `json:"hf"`
-	// Shares held by Sovereign Wealth Fund investors (shares) (numeric string)
+	// Shares held by domestic Sovereign Wealth Fund investors (shares) (numeric string)
+	LocalSw string `json:"local_sw"`
+	// Shares held by foreign Sovereign Wealth Fund investors (shares) (numeric string)
+	ForeignSw string `json:"foreign_sw"`
+	// Shares held by Sovereign Wealth Fund investors, local_sw + foreign_sw (shares) (numeric string)
 	Sw string `json:"sw"`
-	// Shares held by Capital Market Supporting Institution investors (shares) (numeric string)
+	// Shares held by domestic Capital Market Supporting Institution investors (shares) (numeric string)
+	LocalCm string `json:"local_cm"`
+	// Shares held by foreign Capital Market Supporting Institution investors (shares) (numeric string)
+	ForeignCm string `json:"foreign_cm"`
+	// Shares held by Capital Market Supporting Institution investors, local_cm + foreign_cm (shares) (numeric string)
 	Cm string `json:"cm"`
-	// Shares held by Commanditaire Vennootschap (CV) investors (shares) (numeric string)
+	// Shares held by domestic Commanditaire Vennootschap (CV) investors (shares) (numeric string)
+	LocalCv string `json:"local_cv"`
+	// Shares held by foreign Commanditaire Vennootschap (CV) investors (shares) (numeric string)
+	ForeignCv string `json:"foreign_cv"`
+	// Shares held by Commanditaire Vennootschap (CV) investors, local_cv + foreign_cv (shares) (numeric string)
 	Cv string `json:"cv"`
-	// Shares held by Firm investors (shares) (numeric string)
+	// Shares held by domestic Firm investors (shares) (numeric string)
+	LocalFm string `json:"local_fm"`
+	// Shares held by foreign Firm investors (shares) (numeric string)
+	ForeignFm string `json:"foreign_fm"`
+	// Shares held by Firm investors, local_fm + foreign_fm (shares) (numeric string)
 	Fm string `json:"fm"`
-	// Shares held by Mutual Fund Selling Agent investors (shares) (numeric string)
+	// Shares held by domestic Mutual Fund Selling Agent investors (shares) (numeric string)
+	LocalSa string `json:"local_sa"`
+	// Shares held by foreign Mutual Fund Selling Agent investors (shares) (numeric string)
+	ForeignSa string `json:"foreign_sa"`
+	// Shares held by Mutual Fund Selling Agent investors, local_sa + foreign_sa (shares) (numeric string)
 	Sa string `json:"sa"`
-	// Shares held by Peer to Peer Lending investors (shares) (numeric string)
+	// Shares held by domestic Peer to Peer Lending investors (shares) (numeric string)
+	LocalPp string `json:"local_pp"`
+	// Shares held by foreign Peer to Peer Lending investors (shares) (numeric string)
+	ForeignPp string `json:"foreign_pp"`
+	// Shares held by Peer to Peer Lending investors, local_pp + foreign_pp (shares) (numeric string)
 	Pp string `json:"pp"`
-	// Shares held by Permanent Establishment investors (shares) (numeric string)
+	// Shares held by domestic Permanent Establishment investors (shares) (numeric string)
+	LocalPs string `json:"local_ps"`
+	// Shares held by foreign Permanent Establishment investors (shares) (numeric string)
+	ForeignPs string `json:"foreign_ps"`
+	// Shares held by Permanent Establishment investors, local_ps + foreign_ps (shares) (numeric string)
 	Ps string `json:"ps"`
-	// Shares held by Sole Proprietorship investors (shares) (numeric string)
+	// Shares held by domestic Sole Proprietorship investors (shares) (numeric string)
+	LocalSp string `json:"local_sp"`
+	// Shares held by foreign Sole Proprietorship investors (shares) (numeric string)
+	ForeignSp string `json:"foreign_sp"`
+	// Shares held by Sole Proprietorship investors, local_sp + foreign_sp (shares) (numeric string)
 	Sp string `json:"sp"`
-	// Shares held by Corporate investors (shares) (numeric string)
+	// Shares held by domestic Corporate investors (shares) (numeric string)
+	LocalCr string `json:"local_cr"`
+	// Shares held by foreign Corporate investors (shares) (numeric string)
+	ForeignCr string `json:"foreign_cr"`
+	// Shares held by Corporate investors, local_cr + foreign_cr (shares) (numeric string)
 	Cr string `json:"cr"`
-	// Shares held by Association / Social Organization investors (shares) (numeric string)
+	// Shares held by domestic Association / Social Organization investors (shares) (numeric string)
+	LocalAs string `json:"local_as"`
+	// Shares held by foreign Association / Social Organization investors (shares) (numeric string)
+	ForeignAs string `json:"foreign_as"`
+	// Shares held by Association / Social Organization investors, local_as + foreign_as (shares) (numeric string)
 	As string `json:"as"`
-	// Shares held by State-Owned Enterprise (BUMN) investors (shares) (numeric string)
+	// Shares held by domestic State-Owned Enterprise (BUMN) investors (shares) (numeric string)
+	LocalSo string `json:"local_so"`
+	// Shares held by foreign State-Owned Enterprise (BUMN) investors (shares) (numeric string)
+	ForeignSo string `json:"foreign_so"`
+	// Shares held by State-Owned Enterprise (BUMN) investors, local_so + foreign_so (shares) (numeric string)
 	So string `json:"so"`
-	// Shares held by Central Bank investors (shares) (numeric string)
+	// Shares held by domestic Central Bank investors (shares) (numeric string)
+	LocalCb string `json:"local_cb"`
+	// Shares held by foreign Central Bank investors (shares) (numeric string)
+	ForeignCb string `json:"foreign_cb"`
+	// Shares held by Central Bank investors, local_cb + foreign_cb (shares) (numeric string)
 	Cb string `json:"cb"`
-	// Shares held by State-Owned Company investors (shares) (numeric string)
+	// Shares held by domestic State-Owned Company investors (shares) (numeric string)
+	LocalOc string `json:"local_oc"`
+	// Shares held by foreign State-Owned Company investors (shares) (numeric string)
+	ForeignOc string `json:"foreign_oc"`
+	// Shares held by State-Owned Company investors, local_oc + foreign_oc (shares) (numeric string)
 	Oc string `json:"oc"`
-	// Shares held by Diocese investors (shares) (numeric string)
+	// Shares held by domestic Diocese investors (shares) (numeric string)
+	LocalDc string `json:"local_dc"`
+	// Shares held by foreign Diocese investors (shares) (numeric string)
+	ForeignDc string `json:"foreign_dc"`
+	// Shares held by Diocese investors, local_dc + foreign_dc (shares) (numeric string)
 	Dc string `json:"dc"`
-	// Shares held by Conference investors (shares) (numeric string)
+	// Shares held by domestic Conference investors (shares) (numeric string)
+	LocalCn string `json:"local_cn"`
+	// Shares held by foreign Conference investors (shares) (numeric string)
+	ForeignCn string `json:"foreign_cn"`
+	// Shares held by Conference investors, local_cn + foreign_cn (shares) (numeric string)
 	Cn string `json:"cn"`
-	// Shares held by Congregation investors (shares) (numeric string)
+	// Shares held by domestic Congregation investors (shares) (numeric string)
+	LocalCg string `json:"local_cg"`
+	// Shares held by foreign Congregation investors (shares) (numeric string)
+	ForeignCg string `json:"foreign_cg"`
+	// Shares held by Congregation investors, local_cg + foreign_cg (shares) (numeric string)
 	Cg string `json:"cg"`
-	// Shares held by Cooperative investors (shares) (numeric string)
+	// Shares held by domestic Cooperative investors (shares) (numeric string)
+	LocalCp string `json:"local_cp"`
+	// Shares held by foreign Cooperative investors (shares) (numeric string)
+	ForeignCp string `json:"foreign_cp"`
+	// Shares held by Cooperative investors, local_cp + foreign_cp (shares) (numeric string)
 	Cp string `json:"cp"`
-	// Shares held by International Organization investors (shares) (numeric string)
+	// Shares held by domestic International Organization investors (shares) (numeric string)
+	LocalIo string `json:"local_io"`
+	// Shares held by foreign International Organization investors (shares) (numeric string)
+	ForeignIo string `json:"foreign_io"`
+	// Shares held by International Organization investors, local_io + foreign_io (shares) (numeric string)
 	Io string `json:"io"`
-	// Shares held by Political Party investors (shares) (numeric string)
+	// Shares held by domestic Political Party investors (shares) (numeric string)
+	LocalPl string `json:"local_pl"`
+	// Shares held by foreign Political Party investors (shares) (numeric string)
+	ForeignPl string `json:"foreign_pl"`
+	// Shares held by Political Party investors, local_pl + foreign_pl (shares) (numeric string)
 	Pl string `json:"pl"`
-	// Shares held by Partnership investors (shares) (numeric string)
+	// Shares held by domestic Partnership investors (shares) (numeric string)
+	LocalPt string `json:"local_pt"`
+	// Shares held by foreign Partnership investors (shares) (numeric string)
+	ForeignPt string `json:"foreign_pt"`
+	// Shares held by Partnership investors, local_pt + foreign_pt (shares) (numeric string)
 	Pt string `json:"pt"`
-	// Shares held by Educational Institution investors (shares) (numeric string)
+	// Shares held by domestic Educational Institution investors (shares) (numeric string)
+	LocalEd string `json:"local_ed"`
+	// Shares held by foreign Educational Institution investors (shares) (numeric string)
+	ForeignEd string `json:"foreign_ed"`
+	// Shares held by Educational Institution investors, local_ed + foreign_ed (shares) (numeric string)
 	Ed string `json:"ed"`
-	// Shares held by Mutual Fund investors (shares) (numeric string)
+	// Shares held by domestic Mutual Fund investors (shares) (numeric string)
+	LocalMf string `json:"local_mf"`
+	// Shares held by foreign Mutual Fund investors (shares) (numeric string)
+	ForeignMf string `json:"foreign_mf"`
+	// Shares held by Mutual Fund investors, local_mf + foreign_mf (shares) (numeric string)
 	Mf string `json:"mf"`
-	// Shares held by Securities Company investors (shares) (numeric string)
+	// Shares held by domestic Securities Company investors (shares) (numeric string)
+	LocalSc string `json:"local_sc"`
+	// Shares held by foreign Securities Company investors (shares) (numeric string)
+	ForeignSc string `json:"foreign_sc"`
+	// Shares held by Securities Company investors, local_sc + foreign_sc (shares) (numeric string)
 	Sc string `json:"sc"`
-	// Shares held by Pension Fund investors (shares) (numeric string)
+	// Shares held by domestic Pension Fund investors (shares) (numeric string)
+	LocalPf string `json:"local_pf"`
+	// Shares held by foreign Pension Fund investors (shares) (numeric string)
+	ForeignPf string `json:"foreign_pf"`
+	// Shares held by Pension Fund investors, local_pf + foreign_pf (shares) (numeric string)
 	Pf string `json:"pf"`
-	// Shares held by Financial Institution investors (shares) (numeric string)
+	// Shares held by domestic Financial Institution investors (shares) (numeric string)
+	LocalIb string `json:"local_ib"`
+	// Shares held by foreign Financial Institution investors (shares) (numeric string)
+	ForeignIb string `json:"foreign_ib"`
+	// Shares held by Financial Institution investors, local_ib + foreign_ib (shares) (numeric string)
 	Ib string `json:"ib"`
-	// Shares held by Insurance investors (shares) (numeric string)
+	// Shares held by domestic Insurance investors (shares) (numeric string)
+	LocalIs string `json:"local_is"`
+	// Shares held by foreign Insurance investors (shares) (numeric string)
+	ForeignIs string `json:"foreign_is"`
+	// Shares held by Insurance investors, local_is + foreign_is (shares) (numeric string)
 	Is string `json:"is"`
-	// Shares held by Foundation investors (shares) (numeric string)
+	// Shares held by domestic Foundation investors (shares) (numeric string)
+	LocalFd string `json:"local_fd"`
+	// Shares held by foreign Foundation investors (shares) (numeric string)
+	ForeignFd string `json:"foreign_fd"`
+	// Shares held by Foundation investors, local_fd + foreign_fd (shares) (numeric string)
 	Fd string `json:"fd"`
-	// Shares held by Individual investors (shares) (numeric string)
+	// Shares held by domestic Individual investors (shares) (numeric string)
+	LocalIn string `json:"local_in"`
+	// Shares held by foreign Individual investors (shares) (numeric string)
+	ForeignIn string `json:"foreign_in"`
+	// Shares held by Individual investors, local_in + foreign_in (shares) (numeric string)
 	In string `json:"in"`
+	// Total shares held by foreign investors (shares) (numeric string)
+	TotalForeign string `json:"total_foreign"`
+	// Total shares held by domestic investors (shares) (numeric string)
+	TotalLocal string `json:"total_local"`
 	// Total shares across all classifications (shares) (numeric string)
 	Total string `json:"total"`
 }
@@ -1065,86 +1227,286 @@ type ShareholderClassificationItem struct {
 type ShareholderClassifyTableResponse struct {
 	// Stock code
 	Code string `json:"code"`
-	// Shares held by Bank investors (shares) (numeric string)
+	// Shares held by domestic Bank investors (shares) (numeric string)
+	LocalBk string `json:"local_bk"`
+	// Shares held by foreign Bank investors (shares) (numeric string)
+	ForeignBk string `json:"foreign_bk"`
+	// Shares held by Bank investors, local_bk + foreign_bk (shares) (numeric string)
 	Bk string `json:"bk"`
-	// Shares held by Government investors (shares) (numeric string)
+	// Shares held by domestic Government investors (shares) (numeric string)
+	LocalGv string `json:"local_gv"`
+	// Shares held by foreign Government investors (shares) (numeric string)
+	ForeignGv string `json:"foreign_gv"`
+	// Shares held by Government investors, local_gv + foreign_gv (shares) (numeric string)
 	Gv string `json:"gv"`
-	// Shares held by Private Equity investors (shares) (numeric string)
+	// Shares held by domestic Private Equity investors (shares) (numeric string)
+	LocalPe string `json:"local_pe"`
+	// Shares held by foreign Private Equity investors (shares) (numeric string)
+	ForeignPe string `json:"foreign_pe"`
+	// Shares held by Private Equity investors, local_pe + foreign_pe (shares) (numeric string)
 	Pe string `json:"pe"`
-	// Shares held by Trustee Bank investors (shares) (numeric string)
+	// Shares held by domestic Trustee Bank investors (shares) (numeric string)
+	LocalTb string `json:"local_tb"`
+	// Shares held by foreign Trustee Bank investors (shares) (numeric string)
+	ForeignTb string `json:"foreign_tb"`
+	// Shares held by Trustee Bank investors, local_tb + foreign_tb (shares) (numeric string)
 	Tb string `json:"tb"`
-	// Shares held by Venture Capital investors (shares) (numeric string)
+	// Shares held by domestic Venture Capital investors (shares) (numeric string)
+	LocalVc string `json:"local_vc"`
+	// Shares held by foreign Venture Capital investors (shares) (numeric string)
+	ForeignVc string `json:"foreign_vc"`
+	// Shares held by Venture Capital investors, local_vc + foreign_vc (shares) (numeric string)
 	Vc string `json:"vc"`
-	// Shares held by Private Bank investors (shares) (numeric string)
+	// Shares held by domestic Private Bank investors (shares) (numeric string)
+	LocalPb string `json:"local_pb"`
+	// Shares held by foreign Private Bank investors (shares) (numeric string)
+	ForeignPb string `json:"foreign_pb"`
+	// Shares held by Private Bank investors, local_pb + foreign_pb (shares) (numeric string)
 	Pb string `json:"pb"`
-	// Shares held by Exchange Traded Fund (ETF) investors (shares) (numeric string)
+	// Shares held by domestic Exchange Traded Fund (ETF) investors (shares) (numeric string)
+	LocalEf string `json:"local_ef"`
+	// Shares held by foreign Exchange Traded Fund (ETF) investors (shares) (numeric string)
+	ForeignEf string `json:"foreign_ef"`
+	// Shares held by Exchange Traded Fund (ETF) investors, local_ef + foreign_ef (shares) (numeric string)
 	Ef string `json:"ef"`
-	// Shares held by Investment Manager investors (shares) (numeric string)
+	// Shares held by domestic Investment Manager investors (shares) (numeric string)
+	LocalIm string `json:"local_im"`
+	// Shares held by foreign Investment Manager investors (shares) (numeric string)
+	ForeignIm string `json:"foreign_im"`
+	// Shares held by Investment Manager investors, local_im + foreign_im (shares) (numeric string)
 	Im string `json:"im"`
-	// Shares held by Investment Advisor investors (shares) (numeric string)
+	// Shares held by domestic Investment Advisor investors (shares) (numeric string)
+	LocalIa string `json:"local_ia"`
+	// Shares held by foreign Investment Advisor investors (shares) (numeric string)
+	ForeignIa string `json:"foreign_ia"`
+	// Shares held by Investment Advisor investors, local_ia + foreign_ia (shares) (numeric string)
 	Ia string `json:"ia"`
-	// Shares held by Brokerage Firm investors (shares) (numeric string)
+	// Shares held by domestic Brokerage Firm investors (shares) (numeric string)
+	LocalBr string `json:"local_br"`
+	// Shares held by foreign Brokerage Firm investors (shares) (numeric string)
+	ForeignBr string `json:"foreign_br"`
+	// Shares held by Brokerage Firm investors, local_br + foreign_br (shares) (numeric string)
 	Br string `json:"br"`
-	// Shares held by Hedge Fund investors (shares) (numeric string)
+	// Shares held by domestic Hedge Fund investors (shares) (numeric string)
+	LocalHf string `json:"local_hf"`
+	// Shares held by foreign Hedge Fund investors (shares) (numeric string)
+	ForeignHf string `json:"foreign_hf"`
+	// Shares held by Hedge Fund investors, local_hf + foreign_hf (shares) (numeric string)
 	Hf string `json:"hf"`
-	// Shares held by Sovereign Wealth Fund investors (shares) (numeric string)
+	// Shares held by domestic Sovereign Wealth Fund investors (shares) (numeric string)
+	LocalSw string `json:"local_sw"`
+	// Shares held by foreign Sovereign Wealth Fund investors (shares) (numeric string)
+	ForeignSw string `json:"foreign_sw"`
+	// Shares held by Sovereign Wealth Fund investors, local_sw + foreign_sw (shares) (numeric string)
 	Sw string `json:"sw"`
-	// Shares held by Capital Market Supporting Institution investors (shares) (numeric string)
+	// Shares held by domestic Capital Market Supporting Institution investors (shares) (numeric string)
+	LocalCm string `json:"local_cm"`
+	// Shares held by foreign Capital Market Supporting Institution investors (shares) (numeric string)
+	ForeignCm string `json:"foreign_cm"`
+	// Shares held by Capital Market Supporting Institution investors, local_cm + foreign_cm (shares) (numeric string)
 	Cm string `json:"cm"`
-	// Shares held by Commanditaire Vennootschap (CV) investors (shares) (numeric string)
+	// Shares held by domestic Commanditaire Vennootschap (CV) investors (shares) (numeric string)
+	LocalCv string `json:"local_cv"`
+	// Shares held by foreign Commanditaire Vennootschap (CV) investors (shares) (numeric string)
+	ForeignCv string `json:"foreign_cv"`
+	// Shares held by Commanditaire Vennootschap (CV) investors, local_cv + foreign_cv (shares) (numeric string)
 	Cv string `json:"cv"`
-	// Shares held by Firm investors (shares) (numeric string)
+	// Shares held by domestic Firm investors (shares) (numeric string)
+	LocalFm string `json:"local_fm"`
+	// Shares held by foreign Firm investors (shares) (numeric string)
+	ForeignFm string `json:"foreign_fm"`
+	// Shares held by Firm investors, local_fm + foreign_fm (shares) (numeric string)
 	Fm string `json:"fm"`
-	// Shares held by Mutual Fund Selling Agent investors (shares) (numeric string)
+	// Shares held by domestic Mutual Fund Selling Agent investors (shares) (numeric string)
+	LocalSa string `json:"local_sa"`
+	// Shares held by foreign Mutual Fund Selling Agent investors (shares) (numeric string)
+	ForeignSa string `json:"foreign_sa"`
+	// Shares held by Mutual Fund Selling Agent investors, local_sa + foreign_sa (shares) (numeric string)
 	Sa string `json:"sa"`
-	// Shares held by Peer to Peer Lending investors (shares) (numeric string)
+	// Shares held by domestic Peer to Peer Lending investors (shares) (numeric string)
+	LocalPp string `json:"local_pp"`
+	// Shares held by foreign Peer to Peer Lending investors (shares) (numeric string)
+	ForeignPp string `json:"foreign_pp"`
+	// Shares held by Peer to Peer Lending investors, local_pp + foreign_pp (shares) (numeric string)
 	Pp string `json:"pp"`
-	// Shares held by Permanent Establishment investors (shares) (numeric string)
+	// Shares held by domestic Permanent Establishment investors (shares) (numeric string)
+	LocalPs string `json:"local_ps"`
+	// Shares held by foreign Permanent Establishment investors (shares) (numeric string)
+	ForeignPs string `json:"foreign_ps"`
+	// Shares held by Permanent Establishment investors, local_ps + foreign_ps (shares) (numeric string)
 	Ps string `json:"ps"`
-	// Shares held by Sole Proprietorship investors (shares) (numeric string)
+	// Shares held by domestic Sole Proprietorship investors (shares) (numeric string)
+	LocalSp string `json:"local_sp"`
+	// Shares held by foreign Sole Proprietorship investors (shares) (numeric string)
+	ForeignSp string `json:"foreign_sp"`
+	// Shares held by Sole Proprietorship investors, local_sp + foreign_sp (shares) (numeric string)
 	Sp string `json:"sp"`
-	// Shares held by Corporate investors (shares) (numeric string)
+	// Shares held by domestic Corporate investors (shares) (numeric string)
+	LocalCr string `json:"local_cr"`
+	// Shares held by foreign Corporate investors (shares) (numeric string)
+	ForeignCr string `json:"foreign_cr"`
+	// Shares held by Corporate investors, local_cr + foreign_cr (shares) (numeric string)
 	Cr string `json:"cr"`
-	// Shares held by Association / Social Organization investors (shares) (numeric string)
+	// Shares held by domestic Association / Social Organization investors (shares) (numeric string)
+	LocalAs string `json:"local_as"`
+	// Shares held by foreign Association / Social Organization investors (shares) (numeric string)
+	ForeignAs string `json:"foreign_as"`
+	// Shares held by Association / Social Organization investors, local_as + foreign_as (shares) (numeric string)
 	As string `json:"as"`
-	// Shares held by State-Owned Enterprise (BUMN) investors (shares) (numeric string)
+	// Shares held by domestic State-Owned Enterprise (BUMN) investors (shares) (numeric string)
+	LocalSo string `json:"local_so"`
+	// Shares held by foreign State-Owned Enterprise (BUMN) investors (shares) (numeric string)
+	ForeignSo string `json:"foreign_so"`
+	// Shares held by State-Owned Enterprise (BUMN) investors, local_so + foreign_so (shares) (numeric string)
 	So string `json:"so"`
-	// Shares held by Central Bank investors (shares) (numeric string)
+	// Shares held by domestic Central Bank investors (shares) (numeric string)
+	LocalCb string `json:"local_cb"`
+	// Shares held by foreign Central Bank investors (shares) (numeric string)
+	ForeignCb string `json:"foreign_cb"`
+	// Shares held by Central Bank investors, local_cb + foreign_cb (shares) (numeric string)
 	Cb string `json:"cb"`
-	// Shares held by State-Owned Company investors (shares) (numeric string)
+	// Shares held by domestic State-Owned Company investors (shares) (numeric string)
+	LocalOc string `json:"local_oc"`
+	// Shares held by foreign State-Owned Company investors (shares) (numeric string)
+	ForeignOc string `json:"foreign_oc"`
+	// Shares held by State-Owned Company investors, local_oc + foreign_oc (shares) (numeric string)
 	Oc string `json:"oc"`
-	// Shares held by Diocese investors (shares) (numeric string)
+	// Shares held by domestic Diocese investors (shares) (numeric string)
+	LocalDc string `json:"local_dc"`
+	// Shares held by foreign Diocese investors (shares) (numeric string)
+	ForeignDc string `json:"foreign_dc"`
+	// Shares held by Diocese investors, local_dc + foreign_dc (shares) (numeric string)
 	Dc string `json:"dc"`
-	// Shares held by Conference investors (shares) (numeric string)
+	// Shares held by domestic Conference investors (shares) (numeric string)
+	LocalCn string `json:"local_cn"`
+	// Shares held by foreign Conference investors (shares) (numeric string)
+	ForeignCn string `json:"foreign_cn"`
+	// Shares held by Conference investors, local_cn + foreign_cn (shares) (numeric string)
 	Cn string `json:"cn"`
-	// Shares held by Congregation investors (shares) (numeric string)
+	// Shares held by domestic Congregation investors (shares) (numeric string)
+	LocalCg string `json:"local_cg"`
+	// Shares held by foreign Congregation investors (shares) (numeric string)
+	ForeignCg string `json:"foreign_cg"`
+	// Shares held by Congregation investors, local_cg + foreign_cg (shares) (numeric string)
 	Cg string `json:"cg"`
-	// Shares held by Cooperative investors (shares) (numeric string)
+	// Shares held by domestic Cooperative investors (shares) (numeric string)
+	LocalCp string `json:"local_cp"`
+	// Shares held by foreign Cooperative investors (shares) (numeric string)
+	ForeignCp string `json:"foreign_cp"`
+	// Shares held by Cooperative investors, local_cp + foreign_cp (shares) (numeric string)
 	Cp string `json:"cp"`
-	// Shares held by International Organization investors (shares) (numeric string)
+	// Shares held by domestic International Organization investors (shares) (numeric string)
+	LocalIo string `json:"local_io"`
+	// Shares held by foreign International Organization investors (shares) (numeric string)
+	ForeignIo string `json:"foreign_io"`
+	// Shares held by International Organization investors, local_io + foreign_io (shares) (numeric string)
 	Io string `json:"io"`
-	// Shares held by Political Party investors (shares) (numeric string)
+	// Shares held by domestic Political Party investors (shares) (numeric string)
+	LocalPl string `json:"local_pl"`
+	// Shares held by foreign Political Party investors (shares) (numeric string)
+	ForeignPl string `json:"foreign_pl"`
+	// Shares held by Political Party investors, local_pl + foreign_pl (shares) (numeric string)
 	Pl string `json:"pl"`
-	// Shares held by Partnership investors (shares) (numeric string)
+	// Shares held by domestic Partnership investors (shares) (numeric string)
+	LocalPt string `json:"local_pt"`
+	// Shares held by foreign Partnership investors (shares) (numeric string)
+	ForeignPt string `json:"foreign_pt"`
+	// Shares held by Partnership investors, local_pt + foreign_pt (shares) (numeric string)
 	Pt string `json:"pt"`
-	// Shares held by Educational Institution investors (shares) (numeric string)
+	// Shares held by domestic Educational Institution investors (shares) (numeric string)
+	LocalEd string `json:"local_ed"`
+	// Shares held by foreign Educational Institution investors (shares) (numeric string)
+	ForeignEd string `json:"foreign_ed"`
+	// Shares held by Educational Institution investors, local_ed + foreign_ed (shares) (numeric string)
 	Ed string `json:"ed"`
-	// Shares held by Mutual Fund investors (shares) (numeric string)
+	// Shares held by domestic Mutual Fund investors (shares) (numeric string)
+	LocalMf string `json:"local_mf"`
+	// Shares held by foreign Mutual Fund investors (shares) (numeric string)
+	ForeignMf string `json:"foreign_mf"`
+	// Shares held by Mutual Fund investors, local_mf + foreign_mf (shares) (numeric string)
 	Mf string `json:"mf"`
-	// Shares held by Securities Company investors (shares) (numeric string)
+	// Shares held by domestic Securities Company investors (shares) (numeric string)
+	LocalSc string `json:"local_sc"`
+	// Shares held by foreign Securities Company investors (shares) (numeric string)
+	ForeignSc string `json:"foreign_sc"`
+	// Shares held by Securities Company investors, local_sc + foreign_sc (shares) (numeric string)
 	Sc string `json:"sc"`
-	// Shares held by Pension Fund investors (shares) (numeric string)
+	// Shares held by domestic Pension Fund investors (shares) (numeric string)
+	LocalPf string `json:"local_pf"`
+	// Shares held by foreign Pension Fund investors (shares) (numeric string)
+	ForeignPf string `json:"foreign_pf"`
+	// Shares held by Pension Fund investors, local_pf + foreign_pf (shares) (numeric string)
 	Pf string `json:"pf"`
-	// Shares held by Financial Institution investors (shares) (numeric string)
+	// Shares held by domestic Financial Institution investors (shares) (numeric string)
+	LocalIb string `json:"local_ib"`
+	// Shares held by foreign Financial Institution investors (shares) (numeric string)
+	ForeignIb string `json:"foreign_ib"`
+	// Shares held by Financial Institution investors, local_ib + foreign_ib (shares) (numeric string)
 	Ib string `json:"ib"`
-	// Shares held by Insurance investors (shares) (numeric string)
+	// Shares held by domestic Insurance investors (shares) (numeric string)
+	LocalIs string `json:"local_is"`
+	// Shares held by foreign Insurance investors (shares) (numeric string)
+	ForeignIs string `json:"foreign_is"`
+	// Shares held by Insurance investors, local_is + foreign_is (shares) (numeric string)
 	Is string `json:"is"`
-	// Shares held by Foundation investors (shares) (numeric string)
+	// Shares held by domestic Foundation investors (shares) (numeric string)
+	LocalFd string `json:"local_fd"`
+	// Shares held by foreign Foundation investors (shares) (numeric string)
+	ForeignFd string `json:"foreign_fd"`
+	// Shares held by Foundation investors, local_fd + foreign_fd (shares) (numeric string)
 	Fd string `json:"fd"`
-	// Shares held by Individual investors (shares) (numeric string)
+	// Shares held by domestic Individual investors (shares) (numeric string)
+	LocalIn string `json:"local_in"`
+	// Shares held by foreign Individual investors (shares) (numeric string)
+	ForeignIn string `json:"foreign_in"`
+	// Shares held by Individual investors, local_in + foreign_in (shares) (numeric string)
 	In string `json:"in"`
+	// Total shares held by foreign investors (shares) (numeric string)
+	TotalForeign string `json:"total_foreign"`
+	// Total shares held by domestic investors (shares) (numeric string)
+	TotalLocal string `json:"total_local"`
 	// Total shares across all classifications (shares) (numeric string)
 	Total string `json:"total"`
+}
+
+// FreeFloatItem — Returned by Analysis.GetFreeFloat.
+type FreeFloatItem struct {
+	// Stock code
+	Code string `json:"code"`
+	// Data date; WIB wall-clock DateTime with a literal Z suffix (not UTC), e.g. 2026-10-16T00:00:00.000Z
+	Date string `json:"date"`
+	// Scripless shares held by all shareholders with less than 5% (shares) (numeric string)
+	Public string `json:"public"`
+	// Scripless shares held by the Board of Directors and Commissioners, less than 5% (shares) (numeric string)
+	Management string `json:"management"`
+	// Scripless shares held by the Controller, less than 5% (shares) (numeric string)
+	Controller string `json:"controller"`
+	// Scripless shares held by Affiliates of the Controller, less than 5% (shares) (numeric string)
+	Affiliate string `json:"affiliate"`
+	// Scripless treasury shares, less than 5% (shares) (numeric string)
+	Treasury string `json:"treasury"`
+	// Shares under a transfer restriction (lock up), less than 5% (shares) (numeric string)
+	LockUp string `json:"lock_up"`
+	// Scripless shares held by Venture Capital and Private Equity firms, less than 5% (shares) (numeric string)
+	Private string `json:"private"`
+	// Scripless shares seized or blocked by law enforcement or a competent authority, less than 5% (shares) (numeric string)
+	Law string `json:"law"`
+	// Shares whose beneficial owners are public investors approved by the Exchange to count as Free Float (shares) (numeric string)
+	Other string `json:"other"`
+	// Free Float shares (shares) (numeric string)
+	Total string `json:"total"`
+	// Shares listed on the Exchange at month end (shares) (numeric string)
+	Share string `json:"share"`
+	// Free Float percentage (%)
+	Free float64 `json:"free"`
+	// Unlisted shares, previous month (shares) (numeric string); null if absent
+	NotRecordValuePrev *string `json:"not_record_value_prev"`
+	// Unlisted shares percentage, previous month (%); null if absent
+	NotRecordPctPrev *float64 `json:"not_record_pct_prev"`
+	// Unlisted shares, current month (shares) (numeric string); null if absent
+	NotRecordValueNext *string `json:"not_record_value_next"`
+	// Unlisted shares percentage, current month (%); null if absent
+	NotRecordPctNext *float64 `json:"not_record_pct_next"`
 }
 
 // SummaryStockItem — Returned by Analysis.GetSummaryStock.
@@ -1855,6 +2217,63 @@ type KeystatChartPoints struct {
 	Label string `json:"label"`
 	// Statistic value for the period (unit depends on the statistic); 0 when not reported or name unknown
 	Amount float64 `json:"amount"`
+}
+
+// FlowOfFundsResponse — Returned by Analysis.GetFlowOfFunds.
+type FlowOfFundsResponse struct {
+	Columns  []FlowOfFundsColumns `json:"columns"`
+	Role     string               `json:"role"`
+	Sector   string               `json:"sector"`
+	Currency string               `json:"currency"`
+	Periods  []FlowOfFundsPeriods `json:"periods"`
+}
+
+// FlowOfFundsColumns — Nested response object.
+type FlowOfFundsColumns struct {
+	Label  string `json:"label"`
+	Year   int64  `json:"year"`
+	Period string `json:"period"`
+}
+
+// FlowOfFundsPeriods — Nested response object.
+type FlowOfFundsPeriods struct {
+	Label  string `json:"label"`
+	Year   int64  `json:"year"`
+	Period string `json:"period"`
+	// One of: quarter, annual, ytd.
+	Basis  string                     `json:"basis"`
+	Nodes  []FlowOfFundsPeriodsNodes  `json:"nodes"`
+	Links  []FlowOfFundsPeriodsLinks  `json:"links"`
+	Bridge []FlowOfFundsPeriodsBridge `json:"bridge"`
+	Checks map[string]any             `json:"checks"`
+}
+
+// FlowOfFundsPeriodsNodes — Nested response object.
+type FlowOfFundsPeriodsNodes struct {
+	ID      string  `json:"id"`
+	Concept *string `json:"concept"`
+	LabelID string  `json:"label_id"`
+	LabelEn string  `json:"label_en"`
+	// One of: revenue, cost, income, profit, loss, offset.
+	Kind  string  `json:"kind"`
+	Value float64 `json:"value"`
+}
+
+// FlowOfFundsPeriodsLinks — Nested response object.
+type FlowOfFundsPeriodsLinks struct {
+	Source string  `json:"source"`
+	Target string  `json:"target"`
+	Value  float64 `json:"value"`
+}
+
+// FlowOfFundsPeriodsBridge — Nested response object.
+type FlowOfFundsPeriodsBridge struct {
+	ID      string `json:"id"`
+	LabelID string `json:"label_id"`
+	LabelEn string `json:"label_en"`
+	// One of: total, delta.
+	Kind  string  `json:"kind"`
+	Value float64 `json:"value"`
 }
 
 // CalendarResponse — Paginated corporate-action calendar, newest event date first. Returned by Analysis.GetCalendar.
@@ -3008,14 +3427,20 @@ type DisclosureResponse struct {
 
 // DisclosureData — One item of data
 type DisclosureData struct {
+	// Disclosure id
+	ID string `json:"id"`
 	// Disclosure title
 	Title string `json:"title"`
-	// Issuer stock code (empty string if not tagged)
+	// Issuer stock code
 	Code string `json:"code"`
 	// Publication time, WIB wall-clock in YYYY-MM-DDTHH:MM:SS format (no Z, no fraction), e.g. 2026-09-29T08:00:00
 	Date string `json:"date"`
-	// Disclosure type, e.g. public_expose (empty string if not tagged)
+	// Disclosure type (lowercase StockReportType), e.g. public_expose
 	Type string `json:"type"`
+	// Disclosure description
+	Description *string `json:"description"`
+	// Disclosure summary points
+	Summary []string `json:"summary"`
 	// Attachment files
 	List []DisclosureDataList `json:"list"`
 }
