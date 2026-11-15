@@ -20,6 +20,8 @@ SDK resmi untuk [Invezgo API](https://invezgo.com), penyedia data pasar modal In
 - [Rotasi API Key](#rotasi-api-key)
 - [Penanganan Error](#penanganan-error)
 - [Pagination](#pagination)
+- [Webhook](#webhook)
+- [WebSocket (Real-time)](#websocket-real-time)
 - [Praktik yang Disarankan](#praktik-yang-disarankan)
 - [Pengembangan](#pengembangan)
 - [Dukungan](#dukungan)
@@ -30,7 +32,7 @@ SDK resmi untuk [Invezgo API](https://invezgo.com), penyedia data pasar modal In
 - Go 1.21 atau lebih baru
 - API key Invezgo, dapat dibuat di [halaman pengaturan API](https://invezgo.com/id/setting/api)
 
-SDK ini hanya menggunakan standard library dan aman digunakan secara konkuren oleh banyak goroutine.
+SDK ini hanya menggunakan standard library, kecuali klien WebSocket yang menggunakan [`github.com/coder/websocket`](https://github.com/coder/websocket), dan aman digunakan secara konkuren oleh banyak goroutine.
 
 ## Instalasi
 
@@ -321,6 +323,74 @@ for {
 	page = *res.NextPage
 }
 ```
+
+## Webhook
+
+Webhook (beta) mengirim notifikasi update data, Live Alert, dan peringatan kuota ke server Anda melalui `POST` yang ditandatangani HMAC-SHA256. Verifikasi setiap request menggunakan **body mentah** sebelum di-parse. Fungsi webhook tidak memerlukan client maupun API key.
+
+```go
+http.HandleFunc("/webhooks/invezgo", func(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	event, err := invezgo.VerifyWebhook(body, r.Header, os.Getenv("INVEZGO_WEBHOOK_SECRET"))
+	if err != nil {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent) // balas dulu, proses di background; deduplikasi dengan event.ID
+
+	switch event.Name() {
+	case "update.financial":
+		data, _ := event.UpdateData()
+		fmt.Println(data.Code, data.Path)
+	case "alert.triggered":
+		data, _ := event.AlertTriggeredData()
+		fmt.Println(data.AlertName, data.StocksIn)
+	case "quota.low", "quota.exhausted":
+		data, _ := event.QuotaData()
+		fmt.Println(data.Remaining)
+	}
+})
+```
+
+- `VerifyWebhook` membaca header `X-Invezgo-Timestamp` dan `X-Invezgo-Signature` tanpa membedakan huruf besar/kecil. `VerifyWebhookSignature` menerima nilai signature dan timestamp secara langsung.
+- Timestamp yang berselisih lebih dari 5 menit dari waktu server ditolak. Ubah dengan `invezgo.WithWebhookTolerance(d)`.
+- Kegagalan dikembalikan sebagai `*invezgo.WebhookError` dengan `Reason` bernilai `timestamp`, `signature`, atau `payload`.
+- `ParseWebhook(body)` men-decode event tanpa verifikasi, misalnya untuk pengujian.
+- Data event tersedia melalui `UpdateData`, `AlertTriggeredData`, `AlertDisabledData`, `TestData`, dan `QuotaData`. Abaikan `Domain` atau `Type` yang belum dikenali.
+
+## WebSocket (Real-time)
+
+WebSocket (beta, paket Elite) mengalirkan running trade dan order book melalui satu koneksi. Klien dibuat dari client (menggunakan API key utama dan base URL) atau secara mandiri dengan `invezgo.NewRealtime(apiKey, url)`. API key dikirim melalui header `Authorization`, tidak melalui URL.
+
+```go
+rt := client.Realtime()
+
+_ = rt.SubscribeTrades(ctx, []string{"BBCA", "TLKM"}, &invezgo.TradeFilter{MinLot: invezgo.Ptr(int64(500))})
+_ = rt.SubscribeOrderbook(ctx, []string{"BBCA"})
+
+err := rt.Run(ctx, invezgo.RealtimeHandlers{
+	OnTrades: func(m invezgo.RealtimeTrades) {
+		for _, t := range m.Data {
+			fmt.Println(t.Code, t.Price, t.Lot, t.Side)
+		}
+	},
+	OnOrderbook: func(m invezgo.RealtimeOrderbook) { fmt.Println(m.Code, m.Side, len(m.Levels)) },
+	OnReconnect: func(attempt int, delay time.Duration, err error) {
+		log.Printf("koneksi terputus (%v), menyambung ulang dalam %s", err, delay)
+	},
+})
+```
+
+- `Run` memblokir hingga `ctx` berakhir, `rt.Close()` dipanggil, atau terjadi error fatal. Handler dijalankan pada goroutine `Run`.
+- Langganan yang dibuat sebelum terhubung dikirim setelah pesan `connected`. Seluruh langganan dikirim ulang setiap kali koneksi tersambung kembali.
+- Sambung ulang otomatis dengan jeda 1, 2, 4, 8, 16, hingga 30 detik. Nonaktifkan dengan `client.Realtime(invezgo.WithReconnect(false))`. Pesan yang terlewat tidak dikirim ulang; ambil melalui endpoint running trade dan order book setelah `OnConnected` atau `OnLagged`.
+- Sambung ulang tidak dilakukan setelah handshake `401`/`403` (dikembalikan sebagai `*invezgo.APIError`) atau kode penutupan `4400` (pesan klien tidak valid). Handshake `429` dan `5xx` serta gangguan jaringan disambung ulang.
+- Batas sisi klien: order book 1 hingga 20 kode, running trade maksimal 200 kode per koneksi. Kode saham diubah menjadi huruf besar.
+- Method lain: `Unsubscribe(ctx, invezgo.ChannelTrades, codes)`, `Ping(ctx)`, dan `Close()`.
 
 ## Praktik yang Disarankan
 

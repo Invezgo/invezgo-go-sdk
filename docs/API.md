@@ -1192,11 +1192,11 @@ Batch endpoints: fetch many stocks in one request (counted as 1 request).
 func (s *BatchService) GetOrderBook(ctx context.Context, code string, params *BatchOrderBookParams) ([]BatchOrderBookItem, error)
 ```
 
-Get order book data for multiple stocks at once in a single request (up to 10 codes on the MAX plan, 25 on the ELITE plan).
+Get order book data for multiple stocks at once in a single request (up to 20 codes on the MAX plan, 50 on the ELITE plan).
 
 | Parameter | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `code (path)` | `string` | yes |  | Daftar kode saham yang dipisahkan `\|` atau koma, mis. `BBCA\|GOTO\|TLKM`. Maksimal 10 kode (paket MAX) atau 25 kode (paket ELITE) per request. |
+| `code (path)` | `string` | yes |  | Daftar kode saham yang dipisahkan `\|` atau koma, mis. `BBCA\|GOTO\|TLKM`. Maksimal 20 kode (paket MAX) atau 50 kode (paket ELITE) per request. |
 | `params.Market` | `*BatchOrderBookMarket` | no | `RG` | Jenis pasar: `RG` = Pasar Reguler, `NG` = Pasar Negosiasi, `TN` = Pasar Tunai. Gunakan `RG` untuk analisis pergerakan harga pada umumnya. Default `RG` bila tidak diisi. One of: RG, NG, TN. Default: RG. |
 | `params.Date` | `*string` | no |  | Tanggal order book historis (`YYYY-MM-DD`), data tersedia mulai `2026-03-25`. Kirim bersama `time`; kosongkan keduanya untuk data realtime. |
 | `params.Time` | `*string` | no |  | Jam order book dalam WIB, format `HH:mm` dengan presisi menit. Kirim bersama `date`. |
@@ -1211,11 +1211,11 @@ Returns: `[]BatchOrderBookItem`
 func (s *BatchService) GetIntradayData(ctx context.Context, code string, params *BatchIntradayDataParams) ([]BatchIntradayDataItem, error)
 ```
 
-Get compact intraday price data for multiple stocks at once in a single request (up to 10 codes on the MAX plan, 25 on the ELITE plan).
+Get compact intraday price data for multiple stocks at once in a single request (up to 20 codes on the MAX plan, 50 on the ELITE plan).
 
 | Parameter | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `code (path)` | `string` | yes |  | Daftar kode saham yang dipisahkan `\|` atau koma, mis. `BBCA\|GOTO\|TLKM`. Maksimal 10 kode (paket MAX) atau 25 kode (paket ELITE) per request. |
+| `code (path)` | `string` | yes |  | Daftar kode saham yang dipisahkan `\|` atau koma, mis. `BBCA\|GOTO\|TLKM`. Maksimal 20 kode (paket MAX) atau 50 kode (paket ELITE) per request. |
 | `params.Market` | `*BatchIntradayDataMarket` | no | `RG` | Jenis pasar: `RG` = Pasar Reguler, `NG` = Pasar Negosiasi, `TN` = Pasar Tunai. Gunakan `RG` untuk analisis pergerakan harga pada umumnya. Default `RG` bila tidak diisi. One of: RG, NG, TN. Default: RG. |
 | `params.Date` | `*string` | no |  | Tanggal data historis (`YYYY-MM-DD`). Kosongkan untuk data realtime hari ini. |
 
@@ -1229,11 +1229,11 @@ Returns: `[]BatchIntradayDataItem`
 func (s *BatchService) GetIntradayIndex(ctx context.Context, code string) ([]BatchIntradayIndexItem, error)
 ```
 
-Get compact intraday data for multiple indexes at once in a single request (up to 10 codes on the MAX plan, 25 on the ELITE plan).
+Get compact intraday data for multiple indexes at once in a single request (up to 20 codes on the MAX plan, 50 on the ELITE plan).
 
 | Parameter | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `code (path)` | `string` | yes |  | Daftar kode indeks yang dipisahkan `\|` atau koma, mis. `COMPOSITE\|LQ45\|IDX30`. Maksimal 10 kode (paket MAX) atau 25 kode (paket ELITE) per request. Daftar indeks tersedia di `/analysis/list/index`. |
+| `code (path)` | `string` | yes |  | Daftar kode indeks yang dipisahkan `\|` atau koma, mis. `COMPOSITE\|LQ45\|IDX30`. Maksimal 20 kode (paket MAX) atau 50 kode (paket ELITE) per request. Daftar indeks tersedia di `/analysis/list/index`. |
 
 Returns: `[]BatchIntradayIndexItem`
 

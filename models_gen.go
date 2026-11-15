@@ -8,7 +8,7 @@ var _ = json.Unmarshal
 
 // ScreenRequest — Request body.
 type ScreenRequest struct {
-	// Formula untuk screening saham
+	// Formula untuk screening saham - Mengacu pada [Variabel Formula](https://docs.invezgo.com/features/formula-variables/)
 	Formula string `json:"formula"`
 	// Kategori indeks saham yang ingin disaring (opsional, bisa multi seperti ["SYARIAH", "IDXENERGY"])
 	Category []string `json:"category,omitempty"`
@@ -61,15 +61,16 @@ type NoteRequest struct {
 
 // AddJournalRequest — Request body.
 type AddJournalRequest struct {
-	Code   string   `json:"code"`
-	Broker string   `json:"broker"`
-	Date   string   `json:"date"`
-	Lot    float64  `json:"lot"`
-	Fee    float64  `json:"fee"`
-	Price  float64  `json:"price"`
+	Code   string  `json:"code"`
+	Broker string  `json:"broker"`
+	Date   string  `json:"date"`
+	Lot    float64 `json:"lot"`
+	Fee    float64 `json:"fee"`
+	Price  float64 `json:"price"`
+	// One of: BUY, SELL.
 	Status *string  `json:"status,omitempty"`
 	Scope  []string `json:"scope"`
-	Note   *string  `json:"note,omitempty"`
+	Note   *string  `json:"note"`
 }
 
 // NoteJournalRequest — Request body.
@@ -83,11 +84,15 @@ type AlertRequest struct {
 	Description *string `json:"description,omitempty"`
 	// Kategori indeks saham yang ingin disaring (opsional, bisa multi seperti ["SYARIAH", "IDXENERGY"])
 	Category []string `json:"category,omitempty"`
-	Every    string   `json:"every"`
-	Send     string   `json:"send"`
-	Scope    []string `json:"scope,omitempty"`
-	// Formula alert (sama dengan batas formula screener)
+	// One of: FOURTY_FIVE_SECONDS, ONE_MINUTE, FIVE_MINUTES, TEN_MINUTES, THIRTY_MINUTES, ONE_HOUR, END_SESSION, END_OF_DAY.
+	Every string `json:"every"`
+	// One of: IN_OUT, IN, OUT.
+	Send  string   `json:"send"`
+	Scope []string `json:"scope,omitempty"`
+	// Formula alert, maksimal 2048 karakter (sama dengan formula screener)
 	Formula string `json:"formula"`
+	// Tujuan pengiriman alert. TELEGRAM (default), WEBHOOK (webhook akun, domain `alert`), atau MCP (MCP Events untuk agen AI). WEBHOOK dan MCP membutuhkan paket PRIME, MAX, atau ELITE. One of: TELEGRAM, WEBHOOK, MCP.
+	Channel *string `json:"channel,omitempty"`
 }
 
 // TestAlertRequest — Request body.
@@ -103,11 +108,15 @@ type UpdateAlertRequest struct {
 	Description *string `json:"description,omitempty"`
 	// Kategori indeks saham yang ingin disaring (opsional, bisa multi seperti ["SYARIAH", "IDXENERGY"])
 	Category []string `json:"category,omitempty"`
-	Every    string   `json:"every"`
-	Send     string   `json:"send"`
-	// Formula alert (sama dengan batas formula screener)
+	// One of: FOURTY_FIVE_SECONDS, ONE_MINUTE, FIVE_MINUTES, TEN_MINUTES, THIRTY_MINUTES, ONE_HOUR, END_SESSION, END_OF_DAY.
+	Every string `json:"every"`
+	// One of: IN_OUT, IN, OUT.
+	Send string `json:"send"`
+	// Formula alert, maksimal 2048 karakter (sama dengan formula screener)
 	Formula string   `json:"formula"`
 	Scope   []string `json:"scope,omitempty"`
+	// Tujuan pengiriman alert. TELEGRAM (default), WEBHOOK (webhook akun, domain `alert`), atau MCP (MCP Events untuk agen AI). WEBHOOK dan MCP membutuhkan paket PRIME, MAX, atau ELITE. Jika tidak dikirim, channel alert tidak berubah. One of: TELEGRAM, WEBHOOK, MCP.
+	Channel *string `json:"channel,omitempty"`
 }
 
 // NoteTradeRequest — Request body.
@@ -637,6 +646,8 @@ type IntradayChartItem struct {
 type OrderBookResponse struct {
 	// Stock code; carries the market suffix when market is not RG (e.g. BBCANG)
 	Code string `json:"code"`
+	// Time of the data in WIB (UTC+7), not UTC. Live data shows when it was retrieved; stored data shows when it was recorded. Null when no data is available.
+	Date *string `json:"date"`
 	// Buy queue levels, ordered from level 1 (best bid)
 	Bid []map[string]*float64 `json:"bid"`
 	// Sell queue levels, ordered from level 1 (best offer)
@@ -667,6 +678,8 @@ type OrderQueueItem struct {
 type IntradayDataResponse struct {
 	// Stock code (without market suffix)
 	Code string `json:"code"`
+	// Time of the data in WIB (UTC+7), not UTC. Live data shows when it was retrieved; stored data shows when it was recorded, or 16:15 (market close) for daily data. Null when no data is available.
+	Date *string `json:"date"`
 	// Opening price (Rupiah)
 	Open *float64 `json:"open"`
 	// Highest price (Rupiah)
@@ -707,6 +720,8 @@ type IntradayDataResponse struct {
 type IntradayIndexResponse struct {
 	// Index code
 	Code string `json:"code"`
+	// Time of the data in WIB (UTC+7), not UTC. Live data shows when it was retrieved; stored data shows 16:15 (market close) of that trading day. Null when no data is available.
+	Date *string `json:"date"`
 	// Index opening value; may be a numeric string outside trading hours
 	Open *FlexFloat `json:"open"`
 	// Index highest value; may be a numeric string outside trading hours
@@ -2302,6 +2317,8 @@ type CalendarData struct {
 type BatchOrderBookItem struct {
 	// Stock code; may carry the market suffix when market is not RG (e.g. BBCANG); empty string when not available
 	Code string `json:"code"`
+	// Time of the data in WIB (UTC+7), not UTC. Live data shows when it was retrieved; stored data shows when it was recorded. Null when no data is available.
+	Date *string `json:"date"`
 	// Buy queue levels, ordered from level 1 (best bid)
 	Bid []map[string]*float64 `json:"bid"`
 	// Sell queue levels, ordered from level 1 (best offer)
@@ -2312,6 +2329,8 @@ type BatchOrderBookItem struct {
 type BatchIntradayDataItem struct {
 	// Stock code (carries the market suffix when market is not RG)
 	Code string `json:"code"`
+	// Time of the data in WIB (UTC+7), not UTC. Live data shows when it was retrieved; stored data shows 16:15 (market close) of that trading day. Null when no data is available.
+	Date *string `json:"date"`
 	// Opening price (Rupiah)
 	Open *float64 `json:"open"`
 	// Highest price (Rupiah)
@@ -2352,6 +2371,8 @@ type BatchIntradayDataItem struct {
 type BatchIntradayIndexItem struct {
 	// Index code
 	Code string `json:"code"`
+	// Time of the data in WIB (UTC+7), not UTC. Live data shows when it was retrieved; stored data shows 16:15 (market close) of that trading day. Null when no data is available.
+	Date *string `json:"date"`
 	// Index opening value
 	Open *float64 `json:"open"`
 	// Index highest value

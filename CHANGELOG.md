@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## Unreleased
+
+### Added
+- Webhook helpers (beta, standard library only): `VerifyWebhook(body, header, secret, ...)`,
+  `VerifyWebhookSignature(...)`, `ParseWebhook(body)`, `WithWebhookTolerance`, `*WebhookError`
+  (`Reason`: `timestamp` | `signature` | `payload`), `WebhookEvent` with `Name()` and typed data helpers
+  (`UpdateData`, `AlertTriggeredData`, `AlertDisabledData`, `TestData`, `QuotaData`).
+- WebSocket client (beta, Elite plan) for running trades and order books: `client.Realtime()` /
+  `NewRealtime(apiKey, url)`, `SubscribeTrades`, `SubscribeOrderbook`, `Unsubscribe`, `Ping`, `Close`,
+  `Run(ctx, RealtimeHandlers{...})`, automatic reconnect with subscription replay (`WithReconnect(false)` disables).
+- Dependency `github.com/coder/websocket` v1.8.13.
+
 ## v2.1.0
 
 Regenerated from the latest OpenAPI spec (Invezgo API 1.2, 109 endpoints).
