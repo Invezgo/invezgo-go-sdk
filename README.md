@@ -364,13 +364,15 @@ http.HandleFunc("/webhooks/invezgo", func(w http.ResponseWriter, r *http.Request
 
 ## WebSocket (Real-time)
 
-WebSocket (beta, paket Elite) mengalirkan running trade dan order book melalui satu koneksi. Klien dibuat dari client (menggunakan API key utama dan base URL) atau secara mandiri dengan `invezgo.NewRealtime(apiKey, url)`. API key dikirim melalui header `Authorization`, tidak melalui URL.
+WebSocket (beta, paket Elite) mengalirkan running trade, order book, quote saham, dan indeks melalui satu koneksi. Klien dibuat dari client (menggunakan API key utama dan base URL) atau secara mandiri dengan `invezgo.NewRealtime(apiKey, url)`. API key dikirim melalui header `Authorization`, tidak melalui URL.
 
 ```go
 rt := client.Realtime()
 
 _ = rt.SubscribeTrades(ctx, []string{"BBCA", "TLKM"}, &invezgo.TradeFilter{MinLot: invezgo.Ptr(int64(500))})
 _ = rt.SubscribeOrderbook(ctx, []string{"BBCA"})
+_ = rt.SubscribeStock(ctx, []string{"BBCA"})
+_ = rt.SubscribeIndex(ctx, []string{"COMPOSITE", "LQ45"}) // nil = seluruh indeks
 
 err := rt.Run(ctx, invezgo.RealtimeHandlers{
 	OnTrades: func(m invezgo.RealtimeTrades) {
@@ -379,6 +381,8 @@ err := rt.Run(ctx, invezgo.RealtimeHandlers{
 		}
 	},
 	OnOrderbook: func(m invezgo.RealtimeOrderbook) { fmt.Println(m.Code, m.Side, len(m.Levels)) },
+	OnStock:     func(m invezgo.RealtimeStock) { fmt.Println(m.Code, m.Last, m.ChangePct) },
+	OnIndex:     func(m invezgo.RealtimeIndex) { fmt.Println(m.Code, m.Last, m.ChangePct) },
 	OnReconnect: func(attempt int, delay time.Duration, err error) {
 		log.Printf("koneksi terputus (%v), menyambung ulang dalam %s", err, delay)
 	},
@@ -389,8 +393,9 @@ err := rt.Run(ctx, invezgo.RealtimeHandlers{
 - Langganan yang dibuat sebelum terhubung dikirim setelah pesan `connected`. Seluruh langganan dikirim ulang setiap kali koneksi tersambung kembali.
 - Sambung ulang otomatis dengan jeda 1, 2, 4, 8, 16, hingga 30 detik. Nonaktifkan dengan `client.Realtime(invezgo.WithReconnect(false))`. Pesan yang terlewat tidak dikirim ulang; ambil melalui endpoint running trade dan order book setelah `OnConnected` atau `OnLagged`.
 - Sambung ulang tidak dilakukan setelah handshake `401`/`403` (dikembalikan sebagai `*invezgo.APIError`) atau kode penutupan `4400` (pesan klien tidak valid). Handshake `429` dan `5xx` serta gangguan jaringan disambung ulang.
-- Batas sisi klien: order book 1 hingga 20 kode, running trade maksimal 200 kode per koneksi. Kode saham diubah menjadi huruf besar.
-- Method lain: `Unsubscribe(ctx, invezgo.ChannelTrades, codes)`, `Ping(ctx)`, dan `Close()`.
+- Batas sisi klien per koneksi: running trade maksimal 200 kode, order book 1 hingga 20 kode, quote saham 1 hingga 50 kode, dan indeks maksimal 100 kode. Kode diubah menjadi huruf besar.
+- Field quote saham dan indeks yang belum tersedia dari bursa bernilai `nil`. Kode indeks pada `RealtimeIndex` mengikuti penulisan bursa (misalnya `Investor33`); bandingkan dengan `strings.EqualFold`.
+- Method lain: `Unsubscribe(ctx, invezgo.ChannelTrades, codes)` (juga `ChannelOrderbook`, `ChannelStock`, `ChannelIndex`), `Ping(ctx)`, dan `Close()`.
 
 ## Praktik yang Disarankan
 

@@ -83,9 +83,17 @@ func TestRealtimeReplaysQueuedSubscriptionsAndDecodes(t *testing.T) {
 		if got, want := wsRead(t, c), `{"op":"subscribe","channel":"orderbook","codes":["BBCA"]}`; got != want {
 			t.Errorf("orderbook replay %s, want %s", got, want)
 		}
+		if got, want := wsRead(t, c), `{"op":"subscribe","channel":"stock","codes":["BBCA"]}`; got != want {
+			t.Errorf("stock replay %s, want %s", got, want)
+		}
+		if got, want := wsRead(t, c), `{"op":"subscribe","channel":"index","codes":["COMPOSITE"]}`; got != want {
+			t.Errorf("index replay %s, want %s", got, want)
+		}
 		wsSend(c, `{"type":"subscribed","channel":"trades","codes":"*","min_lot":0,"min_value":0}`)
 		wsSend(c, `{"type":"trades","ts":1793240653184,"data":[{"id":"202610290000255958","time":"092413","code":"ISAT","price":1465.0,"lot":9,"value":1318500,"change":-105.0,"side":"buy"}]}`)
 		wsSend(c, `{"type":"orderbook","code":"BBCA","side":"bid","levels":[[9875,120],{"p":9850}],"seq":null}`)
+		wsSend(c, `{"type":"stock","code":"BBCA","last":5650.0,"prev":5550.0,"open":null,"change_pct":1.8,"volume":114428700,"iev":7927800,"time":"110436","seq":4408664}`)
+		wsSend(c, `{"type":"index","code":"Investor33","last":5221.553,"change_pct":1.462,"volume":20865566335,"time":"110512"}`)
 		wsSend(c, `{"type":"lagged","missed":120}`)
 		wsSend(c, `{"type":"brand_new","x":1}`)
 		if got := wsRead(t, c); got != `{"op":"ping"}` {
@@ -104,18 +112,31 @@ func TestRealtimeReplaysQueuedSubscriptionsAndDecodes(t *testing.T) {
 	if err := rt.SubscribeOrderbook(ctx, []string{"bbca"}); err != nil {
 		t.Fatal(err)
 	}
+	if err := rt.SubscribeStock(ctx, []string{"bbca"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := rt.SubscribeIndex(ctx, []string{"composite", "LQ45"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := rt.Unsubscribe(ctx, ChannelIndex, []string{"lq45"}); err != nil {
+		t.Fatal(err)
+	}
 
 	var mu sync.Mutex
 	var got []string
 	var trades RealtimeTrades
 	var book RealtimeOrderbook
 	var sub RealtimeSubscribed
+	var stock RealtimeStock
+	var index RealtimeIndex
 	note := func(s string) { mu.Lock(); got = append(got, s); mu.Unlock() }
 	done := runRealtime(t, rt, RealtimeHandlers{
 		OnConnected:  func() { note("connected") },
 		OnSubscribed: func(s RealtimeSubscribed) { sub = s; note("subscribed") },
 		OnTrades:     func(m RealtimeTrades) { trades = m; note("trades") },
 		OnOrderbook:  func(m RealtimeOrderbook) { book = m; note("orderbook") },
+		OnStock:      func(m RealtimeStock) { stock = m; note("stock") },
+		OnIndex:      func(m RealtimeIndex) { index = m; note("index") },
 		OnLagged:     func(n int64) { note("lagged") },
 		OnUnknown: func(raw []byte) {
 			note("unknown")
@@ -128,7 +149,7 @@ func TestRealtimeReplaysQueuedSubscriptionsAndDecodes(t *testing.T) {
 	if err := wait(t, done); err != nil {
 		t.Fatalf("Run: %v", err)
 	}
-	if want := "[connected subscribed trades orderbook lagged unknown pong]"; fmt.Sprint(got) != want {
+	if want := "[connected subscribed trades orderbook stock index lagged unknown pong]"; fmt.Sprint(got) != want {
 		t.Fatalf("events %v, want %s", got, want)
 	}
 	if !sub.All || sub.MinLot == nil || *sub.MinLot != 0 {
@@ -140,6 +161,12 @@ func TestRealtimeReplaysQueuedSubscriptionsAndDecodes(t *testing.T) {
 	}
 	if book.Code != "BBCA" || book.Side != "bid" || len(book.Levels) != 2 || book.Seq != nil {
 		t.Errorf("orderbook %+v", book)
+	}
+	if stock.Last != 5650 || *stock.Prev != 5550 || stock.Open != nil || *stock.Volume != 114428700 || *stock.IEV != 7927800 || *stock.Seq != 4408664 || stock.Time != "110436" {
+		t.Errorf("stock %+v", stock)
+	}
+	if index.Code != "Investor33" || index.Last != 5221.553 || *index.ChangePct != 1.462 || index.Prev != nil {
+		t.Errorf("index %+v", index)
 	}
 }
 
@@ -248,6 +275,16 @@ func TestRealtimeGuards(t *testing.T) {
 	}
 	if rt.SubscribeTrades(ctx, trades, nil) == nil {
 		t.Error("201 trade codes accepted")
+	}
+	stocks := make([]string, 51)
+	for i := range stocks {
+		stocks[i] = fmt.Sprintf("C%d", i)
+	}
+	if rt.SubscribeStock(ctx, nil) == nil || rt.SubscribeStock(ctx, stocks) == nil {
+		t.Error("empty or 51 stock codes accepted")
+	}
+	if rt.SubscribeIndex(ctx, trades[:101]) == nil {
+		t.Error("101 index codes accepted")
 	}
 	if rt.Unsubscribe(ctx, "quotes", nil) == nil {
 		t.Error("unknown channel accepted")

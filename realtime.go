@@ -21,11 +21,15 @@ const DefaultRealtimeURL = "wss://api.invezgo.com/ws"
 const (
 	ChannelTrades    = "trades"
 	ChannelOrderbook = "orderbook"
+	ChannelStock     = "stock"
+	ChannelIndex     = "index"
 )
 
 const (
 	maxTradeCodes     = 200
 	maxOrderbookCodes = 20
+	maxStockCodes     = 50
+	maxIndexCodes     = 100
 )
 
 // RealtimeTrade is one running-trade transaction.
@@ -60,12 +64,55 @@ type RealtimeOrderbook struct {
 	Seq    *int64            `json:"seq"`
 }
 
+// RealtimeStock is a full stock quote snapshot. Pointer fields are nil when the exchange has not
+// provided them yet.
+type RealtimeStock struct {
+	Code      string   `json:"code"`
+	Last      float64  `json:"last"`
+	Prev      *float64 `json:"prev"`
+	Open      *float64 `json:"open"`
+	High      *float64 `json:"high"`
+	Low       *float64 `json:"low"`
+	Change    *float64 `json:"change"`
+	ChangePct *float64 `json:"change_pct"`
+	// Volume is in shares (not lots).
+	Volume *int64 `json:"volume"`
+	// Value is in Rupiah.
+	Value *int64   `json:"value"`
+	Freq  *int64   `json:"freq"`
+	Avg   *float64 `json:"avg"`
+	// IEP / IEV are the pre-opening Indicative Equilibrium Price and Volume (shares).
+	IEP *float64 `json:"iep"`
+	IEV *int64   `json:"iev"`
+	// Time is HHMMSS (WIB).
+	Time string `json:"time"`
+	Seq  *int64 `json:"seq"`
+}
+
+// RealtimeIndex is an index snapshot. Code keeps the exchange's casing (e.g. "Investor33"), so
+// compare it case-insensitively (strings.EqualFold).
+type RealtimeIndex struct {
+	Code      string   `json:"code"`
+	Last      float64  `json:"last"`
+	Prev      *float64 `json:"prev"`
+	Open      *float64 `json:"open"`
+	High      *float64 `json:"high"`
+	Low       *float64 `json:"low"`
+	Change    *float64 `json:"change"`
+	ChangePct *float64 `json:"change_pct"`
+	Volume    *int64   `json:"volume"`
+	Value     *int64   `json:"value"`
+	Freq      *int64   `json:"freq"`
+	// Time is HHMMSS (WIB).
+	Time string `json:"time"`
+}
+
 // RealtimeSubscribed is the server's current subscription state for one channel.
 type RealtimeSubscribed struct {
 	Channel string
 	// Codes are the subscribed codes; empty when All is true.
 	Codes []string
-	// All is true when the server reports codes "*" (every stock).
+	// All is true when the server reports codes "*" (every stock or index).
 	All bool
 	// MinLot and MinValue are only present on the trades channel.
 	MinLot, MinValue *int64
@@ -79,6 +126,8 @@ type RealtimeHandlers struct {
 	OnSubscribed func(RealtimeSubscribed)
 	OnTrades     func(RealtimeTrades)
 	OnOrderbook  func(RealtimeOrderbook)
+	OnStock      func(RealtimeStock)
+	OnIndex      func(RealtimeIndex)
 	OnPong       func()
 	// OnLagged reports messages skipped because the client read too slowly.
 	OnLagged func(missed int64)
@@ -105,7 +154,7 @@ func WithReconnect(enabled bool) RealtimeOption {
 	return func(r *Realtime) { r.reconnect = enabled }
 }
 
-// Realtime is a WebSocket client for running trades and order books. It remembers the desired
+// Realtime is a WebSocket client for running trades, order books, stock quotes and indices. It remembers the desired
 // subscriptions and replays them after every (re)connection. Call Run once to start it.
 type Realtime struct {
 	apiKey     string
@@ -123,6 +172,9 @@ type Realtime struct {
 	minLot     *int64
 	minValue   *int64
 	bookCodes  []string
+	stockCodes []string
+	indexAll   bool
+	indexCodes []string
 }
 
 // NewRealtime creates a standalone WebSocket client. url defaults to DefaultRealtimeURL.
@@ -205,24 +257,73 @@ func (r *Realtime) SubscribeOrderbook(ctx context.Context, codes []string) error
 	return r.sendLocked(ctx, wsCommand{Op: "subscribe", Channel: ChannelOrderbook, Codes: codes})
 }
 
-// Unsubscribe removes codes from channel (ChannelTrades or ChannelOrderbook). Without codes the
-// whole channel is unsubscribed (for trades this also clears the size filters).
-func (r *Realtime) Unsubscribe(ctx context.Context, channel string, codes []string) error {
-	if channel != ChannelTrades && channel != ChannelOrderbook {
-		return fmt.Errorf("invezgo: unknown channel %q", channel)
+// SubscribeStock subscribes to the stock quote (OHLC, volume, value, freq, IEP/IEV) of codes
+// (1 to 50 codes per connection).
+func (r *Realtime) SubscribeStock(ctx context.Context, codes []string) error {
+	if len(codes) == 0 {
+		return errors.New("invezgo: stock codes are required")
 	}
 	codes = upper(codes)
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	switch {
-	case channel == ChannelOrderbook && len(codes) == 0:
-		r.bookCodes = nil
-	case channel == ChannelOrderbook:
+	merged := mergeCodes(r.stockCodes, codes)
+	if len(merged) > maxStockCodes {
+		return fmt.Errorf("invezgo: at most %d stock quote codes per connection", maxStockCodes)
+	}
+	r.stockCodes = merged
+	return r.sendLocked(ctx, wsCommand{Op: "subscribe", Channel: ChannelStock, Codes: codes})
+}
+
+// SubscribeIndex subscribes to index quotes of codes (e.g. "COMPOSITE", "LQ45"), or of every index
+// when codes is empty.
+func (r *Realtime) SubscribeIndex(ctx context.Context, codes []string) error {
+	codes = upper(codes)
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	merged := mergeCodes(r.indexCodes, codes)
+	if len(merged) > maxIndexCodes {
+		return fmt.Errorf("invezgo: at most %d index codes per connection", maxIndexCodes)
+	}
+	if len(codes) == 0 {
+		r.indexAll = true
+	}
+	r.indexCodes = merged
+	return r.sendLocked(ctx, wsCommand{Op: "subscribe", Channel: ChannelIndex, Codes: codes})
+}
+
+// Unsubscribe removes codes from channel (ChannelTrades, ChannelOrderbook, ChannelStock or
+// ChannelIndex). Without codes the whole channel is unsubscribed (for trades this also clears the
+// size filters).
+func (r *Realtime) Unsubscribe(ctx context.Context, channel string, codes []string) error {
+	codes = upper(codes)
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	all := len(codes) == 0
+	switch channel {
+	case ChannelTrades:
+		if all {
+			r.tradesAll, r.tradeCodes, r.minLot, r.minValue = false, nil, nil, nil
+		} else {
+			r.tradeCodes = removeCodes(r.tradeCodes, codes)
+		}
+	case ChannelIndex:
+		if all {
+			r.indexAll, r.indexCodes = false, nil
+		} else {
+			r.indexCodes = removeCodes(r.indexCodes, codes)
+		}
+	case ChannelOrderbook:
 		r.bookCodes = removeCodes(r.bookCodes, codes)
-	case len(codes) == 0:
-		r.tradesAll, r.tradeCodes, r.minLot, r.minValue = false, nil, nil, nil
+		if all {
+			r.bookCodes = nil
+		}
+	case ChannelStock:
+		r.stockCodes = removeCodes(r.stockCodes, codes)
+		if all {
+			r.stockCodes = nil
+		}
 	default:
-		r.tradeCodes = removeCodes(r.tradeCodes, codes)
+		return fmt.Errorf("invezgo: unknown channel %q", channel)
 	}
 	return r.sendLocked(ctx, wsCommand{Op: "unsubscribe", Channel: channel, Codes: codes})
 }
@@ -275,7 +376,21 @@ func (r *Realtime) replayLocked(ctx context.Context) error {
 		}
 	}
 	if len(r.bookCodes) > 0 {
-		return r.sendLocked(ctx, wsCommand{Op: "subscribe", Channel: ChannelOrderbook, Codes: r.bookCodes})
+		if err := r.sendLocked(ctx, wsCommand{Op: "subscribe", Channel: ChannelOrderbook, Codes: r.bookCodes}); err != nil {
+			return err
+		}
+	}
+	if len(r.stockCodes) > 0 {
+		if err := r.sendLocked(ctx, wsCommand{Op: "subscribe", Channel: ChannelStock, Codes: r.stockCodes}); err != nil {
+			return err
+		}
+	}
+	if r.indexAll || len(r.indexCodes) > 0 {
+		cmd := wsCommand{Op: "subscribe", Channel: ChannelIndex}
+		if !r.indexAll {
+			cmd.Codes = r.indexCodes
+		}
+		return r.sendLocked(ctx, cmd)
 	}
 	return nil
 }
@@ -445,6 +560,20 @@ func (r *Realtime) dispatch(ctx context.Context, conn *websocket.Conn, data []by
 			unknown()
 		} else if h.OnOrderbook != nil {
 			h.OnOrderbook(m)
+		}
+	case "stock":
+		var m RealtimeStock
+		if json.Unmarshal(data, &m) != nil {
+			unknown()
+		} else if h.OnStock != nil {
+			h.OnStock(m)
+		}
+	case "index":
+		var m RealtimeIndex
+		if json.Unmarshal(data, &m) != nil {
+			unknown()
+		} else if h.OnIndex != nil {
+			h.OnIndex(m)
 		}
 	default:
 		unknown()

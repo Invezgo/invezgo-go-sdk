@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented in this file.
 
+## Unreleased
+
+### Added
+- Realtime: `SubscribeStock(ctx, codes)` (stock quote: OHLC, volume, value, freq, IEP/IEV; max 50 codes) and
+  `SubscribeIndex(ctx, codes)` (index quotes, all indices when `codes` is empty; max 100 codes), with
+  `RealtimeStock` / `RealtimeIndex` delivered to the new `OnStock` / `OnIndex` handlers. New channel constants
+  `ChannelStock` and `ChannelIndex` for `Unsubscribe`; both channels are replayed after reconnect.
+
 ## v2.2.0
 
 ### Added
