@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented in this file.
 
-## Unreleased
+## v2.3.0
 
 ### Added
 - Realtime: `SubscribeStock(ctx, codes)` (stock quote: OHLC, volume, value, freq, IEP/IEV; max 50 codes) and

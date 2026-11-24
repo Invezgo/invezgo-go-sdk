@@ -17,7 +17,7 @@ import (
 )
 
 // Version is the SDK version, sent in the User-Agent header.
-const Version = "2.2.0"
+const Version = "2.3.0"
 
 // DefaultBaseURL is the production API endpoint.
 const DefaultBaseURL = "https://api.invezgo.com"
