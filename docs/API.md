@@ -214,7 +214,7 @@ Get realtime/historical running trade transaction data for a specific stock code
 | `code (path)` | `string` | yes |  | Kode saham emiten yang tercatat di BEI, mis. `BBCA`. Tidak case-sensitive. Daftar kode tersedia di `/analysis/list/stock`. |
 | `params.Date` | `string` | yes |  | Tanggal data (`YYYY-MM-DD`). Gunakan hari bursa; tanggal libur bursa dapat menghasilkan data kosong. |
 | `params.Page` | `*int64` | no | `1` | Nomor halaman, dimulai dari 1. Default: 1. Range: 1..-. |
-| `params.Limit` | `*int64` | no | `50` | Jumlah transaksi per halaman. Default: 50. Range: 1..1000. |
+| `params.Limit` | `*int64` | no | `50` | Jumlah transaksi per halaman. Default: 50. Range: 1..500. |
 | `params.Type` | `*StockRunningTradeType` | no | `ALL` | Sisi transaksi: `BUY` = match di harga offer (inisiatif beli), `SELL` = match di harga bid (inisiatif jual), `ALL` = seluruh transaksi. Diabaikan saat jam bursa (tanggal hari ini, 08:45–16:15 WIB pada hari bursa); hanya berlaku pada pengambilan data sehari penuh. One of: ALL, BUY, SELL. Default: ALL. |
 | `params.Orderby` | `*StockRunningTradeOrderby` | no | `TIME` | Kolom pengurutan: `TIME` = waktu transaksi, `PRICE` = harga, `VOLUME` = volume. Diabaikan saat jam bursa (tanggal hari ini, 08:45–16:15 WIB pada hari bursa); hanya berlaku pada pengambilan data sehari penuh. One of: TIME, PRICE, VOLUME. Default: TIME. |
 | `params.Minimum` | `*float64` | no |  | Volume minimal transaksi yang ditampilkan, dalam lembar (1 lot = 100 lembar). Berguna untuk menyaring transaksi besar. Diabaikan saat jam bursa (tanggal hari ini, 08:45–16:15 WIB pada hari bursa); hanya berlaku pada pengambilan data sehari penuh. Range: 0..-. |
@@ -372,6 +372,59 @@ Get multi-timeframe chart data for stocks or indexes.
 | `params.Timeframe` | `*MultiTimeChartTimeframe` | no | `D` | Timeframe candle: `1`, `5`, `15`, `30`, `60` = menit; `D` = harian, `W` = mingguan, `M` = bulanan. Batas data historis: `1` = 3 bulan, `5` = 6 bulan, `15` = 12 bulan, lainnya 24 bulan. Opsional, default `D`; harus huruf kapital. One of: 1, 5, 15, 30, 60, D, W, M. Default: D. |
 
 Returns: `[]MultiTimeChartItem`
+
+### GetLargeOrders
+
+**Stock Large Orders** — `GET /analysis/large-orders/{code}` — cache: **realtime**
+
+```go
+func (s *AnalysisService) GetLargeOrders(ctx context.Context, code string, params LargeOrdersParams) (*LargeOrdersResponse, error)
+```
+
+Get large aggressive orders for one trading day: trades are grouped by the aggressor's order number (the party that triggered the trade; the side comes from `action` BUY/SELL), regular board (RG) only.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `code (path)` | `string` | yes |  | Kode saham emiten yang tercatat di BEI, mis. `BBCA`. Tidak case-sensitive. Daftar kode tersedia di `/analysis/list/stock`. |
+| `params.Date` | `string` | yes |  | Tanggal data (`YYYY-MM-DD`). Gunakan hari bursa; tanggal libur bursa dapat menghasilkan data kosong. |
+
+Returns: `*LargeOrdersResponse`
+
+### GetCandleBrokers
+
+**Stock Candle Brokers** — `GET /analysis/candle-brokers/{code}` — cache: **default**
+
+```go
+func (s *AnalysisService) GetCandleBrokers(ctx context.Context, code string, params CandleBrokersParams) (*CandleBrokersResponse, error)
+```
+
+Get the brokers behind the trades of one time window (e.g. one candle) on a trading day: aggressor and passive sides, net per broker, and foreign lot totals. Regular board (RG) only, with a known trade side.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `code (path)` | `string` | yes |  | Kode saham emiten yang tercatat di BEI, mis. `BBCA`. Tidak case-sensitive. Daftar kode tersedia di `/analysis/list/stock`. |
+| `params.Date` | `string` | yes |  | Tanggal data (`YYYY-MM-DD`). Gunakan hari bursa; tanggal libur bursa dapat menghasilkan data kosong. |
+| `params.Timefrom` | `string` | yes |  | Awal jendela waktu (`HH:MM` atau `HH:MM:SS`, WIB). Harus kelipatan menit penuh (detik `:00`). |
+| `params.Timeto` | `string` | yes |  | Akhir jendela waktu inklusif (`HH:MM` atau `HH:MM:SS`, WIB). Harus berakhir di detik `:59`, tidak lebih awal dari `timefrom`, dan maksimal 1 jam dari `timefrom`. |
+
+Returns: `*CandleBrokersResponse`
+
+### GetFootprint
+
+**Stock Footprint** — `GET /analysis/footprint/{code}` — cache: **realtime**
+
+```go
+func (s *AnalysisService) GetFootprint(ctx context.Context, code string, params FootprintParams) (*FootprintResponse, error)
+```
+
+Get the footprint of one trading day: traded volume per minute per price, split by aggressor side (BUY = HAKA, SELL = HAKI; the side comes from `action`), regular board (RG) only.
+
+| Parameter | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `code (path)` | `string` | yes |  | Kode saham emiten yang tercatat di BEI, mis. `BBCA`. Tidak case-sensitive. Daftar kode tersedia di `/analysis/list/stock`. |
+| `params.Date` | `string` | yes |  | Tanggal data (`YYYY-MM-DD`). Gunakan hari bursa; tanggal libur bursa dapat menghasilkan data kosong. |
+
+Returns: `*FootprintResponse`
 
 ### GetIndicatorChart
 
@@ -1199,7 +1252,7 @@ Get order book data for multiple stocks at once in a single request (up to 20 co
 | `code (path)` | `string` | yes |  | Daftar kode saham yang dipisahkan `\|` atau koma, mis. `BBCA\|GOTO\|TLKM`. Maksimal 20 kode (paket MAX) atau 50 kode (paket ELITE) per request. |
 | `params.Market` | `*BatchOrderBookMarket` | no | `RG` | Jenis pasar: `RG` = Pasar Reguler, `NG` = Pasar Negosiasi, `TN` = Pasar Tunai. Gunakan `RG` untuk analisis pergerakan harga pada umumnya. Default `RG` bila tidak diisi. One of: RG, NG, TN. Default: RG. |
 | `params.Date` | `*string` | no |  | Tanggal order book historis (`YYYY-MM-DD`), data tersedia mulai `2026-03-25`. Kirim bersama `time`; kosongkan keduanya untuk data realtime. |
-| `params.Time` | `*string` | no |  | Jam order book dalam WIB, format `HH:mm` dengan presisi menit. Kirim bersama `date`. |
+| `params.Time` | `*string` | no |  | Jam order book dalam WIB, format `HH:mm` atau `HH:mm:ss`; diambil snapshot terdekat pada tanggal tersebut. Kirim bersama `date`. |
 
 Returns: `[]BatchOrderBookItem`
 

@@ -800,6 +800,140 @@ type MultiTimeChartItem struct {
 	Volume *float64 `json:"volume"`
 }
 
+// LargeOrdersResponse — Large aggressive orders of one day (regular board). Returned by Analysis.GetLargeOrders.
+type LargeOrdersResponse struct {
+	// Number of all aggressor orders that day, before truncation to 300
+	Count int64 `json:"count"`
+	// The 300 largest orders by value, in ascending time order
+	Orders []LargeOrdersOrders `json:"orders"`
+}
+
+// LargeOrdersOrders — Nested response object.
+type LargeOrdersOrders struct {
+	// First trade time of the order (HH:MM:SS, WIB)
+	Time string `json:"time"`
+	// Last trade time of the order (HH:MM:SS, WIB)
+	TimeLast string `json:"time_last"`
+	// Aggressor side. One of: BUY, SELL.
+	Side string `json:"side"`
+	// Total lots
+	Lot float64 `json:"lot"`
+	// Total value (Rupiah)
+	Value float64 `json:"value"`
+	// Volume-weighted average price (Rupiah, rounded)
+	Price int64 `json:"price"`
+	// Number of trades in the order
+	Trades int64 `json:"trades"`
+	// Aggressor broker code
+	Broker string `json:"broker"`
+	// True if the aggressor is a foreign investor
+	Foreign bool `json:"foreign"`
+}
+
+// CandleBrokersResponse — Brokers behind the trades of one minute-aligned time window. Returned by Analysis.GetCandleBrokers.
+type CandleBrokersResponse struct {
+	// Aggressive buy lots
+	AggrBuyLot float64 `json:"aggr_buy_lot"`
+	// Aggressive sell lots
+	AggrSellLot float64 `json:"aggr_sell_lot"`
+	// Foreign buy lots
+	ForeignBuyLot float64 `json:"foreign_buy_lot"`
+	// Foreign sell lots
+	ForeignSellLot float64 `json:"foreign_sell_lot"`
+	// Top 10 aggressive buying brokers
+	AggrBuy []CandleBrokersAggrBuy `json:"aggr_buy"`
+	// Top 10 aggressive selling brokers
+	AggrSell []CandleBrokersAggrSell `json:"aggr_sell"`
+	// Top 10 passive buying brokers
+	PassBuy []CandleBrokersPassBuy `json:"pass_buy"`
+	// Top 10 passive selling brokers
+	PassSell []CandleBrokersPassSell `json:"pass_sell"`
+	// Top 10 brokers by absolute buy minus sell
+	Net []CandleBrokersNet `json:"net"`
+}
+
+// CandleBrokersAggrBuy — Nested response object.
+type CandleBrokersAggrBuy struct {
+	// Broker code
+	Broker string `json:"broker"`
+	// Lots
+	Lot float64 `json:"lot"`
+	// True if the broker traded for a foreign investor
+	Foreign bool `json:"foreign"`
+}
+
+// CandleBrokersAggrSell — Nested response object.
+type CandleBrokersAggrSell struct {
+	// Broker code
+	Broker string `json:"broker"`
+	// Lots
+	Lot float64 `json:"lot"`
+	// True if the broker traded for a foreign investor
+	Foreign bool `json:"foreign"`
+}
+
+// CandleBrokersPassBuy — Nested response object.
+type CandleBrokersPassBuy struct {
+	// Broker code
+	Broker string `json:"broker"`
+	// Lots
+	Lot float64 `json:"lot"`
+	// True if the broker traded for a foreign investor
+	Foreign bool `json:"foreign"`
+}
+
+// CandleBrokersPassSell — Nested response object.
+type CandleBrokersPassSell struct {
+	// Broker code
+	Broker string `json:"broker"`
+	// Lots
+	Lot float64 `json:"lot"`
+	// True if the broker traded for a foreign investor
+	Foreign bool `json:"foreign"`
+}
+
+// CandleBrokersNet — Nested response object.
+type CandleBrokersNet struct {
+	// Broker code
+	Broker string `json:"broker"`
+	// Bought lots
+	Buy float64 `json:"buy"`
+	// Sold lots
+	Sell float64 `json:"sell"`
+	// Buy minus sell (lots)
+	Net float64 `json:"net"`
+	// True if the broker traded for a foreign investor
+	Foreign bool `json:"foreign"`
+}
+
+// FootprintResponse — Footprint of one day: traded lots and value per minute and price, by aggressor side (regular board). Returned by Analysis.GetFootprint.
+type FootprintResponse struct {
+	// Minutes that have trades, ascending
+	Minutes []FootprintMinutes `json:"minutes"`
+}
+
+// FootprintMinutes — Nested response object.
+type FootprintMinutes struct {
+	// Minute of the trades (HH:MM, WIB)
+	Time string `json:"time"`
+	// Prices within the minute, ascending
+	Rows []FootprintMinutesRows `json:"rows"`
+}
+
+// FootprintMinutesRows — Nested response object.
+type FootprintMinutesRows struct {
+	// Price (Rupiah)
+	Price int64 `json:"price"`
+	// Aggressor-buy lots
+	BuyLot float64 `json:"buy_lot"`
+	// Aggressor-sell lots
+	SellLot float64 `json:"sell_lot"`
+	// Aggressor-buy value (Rupiah)
+	BuyValue float64 `json:"buy_value"`
+	// Aggressor-sell value (Rupiah)
+	SellValue float64 `json:"sell_value"`
+}
+
 // IndicatorChartItem — Returned by Analysis.GetIndicatorChart.
 type IndicatorChartItem struct {
 	// Trading date, WIB wall-clock DateTime with a literal Z suffix (not UTC), e.g. 2026-10-16T00:00:00.000Z

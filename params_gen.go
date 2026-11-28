@@ -1016,7 +1016,7 @@ type StockRunningTradeParams struct {
 	Date string
 	// Nomor halaman, dimulai dari 1. Default: 1. Range: 1..-.
 	Page *int64
-	// Jumlah transaksi per halaman. Default: 50. Range: 1..1000.
+	// Jumlah transaksi per halaman. Default: 50. Range: 1..500.
 	Limit *int64
 	// Sisi transaksi: `BUY` = match di harga offer (inisiatif beli), `SELL` = match di harga bid (inisiatif jual), `ALL` = seluruh transaksi. Diabaikan saat jam bursa (tanggal hari ini, 08:45–16:15 WIB pada hari bursa); hanya berlaku pada pengambilan data sehari penuh. One of: ALL, BUY, SELL. Default: ALL.
 	Type *StockRunningTradeType
@@ -1253,6 +1253,57 @@ func (p *MultiTimeChartParams) values() url.Values {
 		x := *p.Timeframe
 		v.Set("timeframe", string(x))
 	}
+	return v
+}
+
+// LargeOrdersParams holds the query parameters of Analysis.GetLargeOrders. Pointer fields are optional; use invezgo.Ptr(v) to set them.
+type LargeOrdersParams struct {
+	// Tanggal data (`YYYY-MM-DD`). Gunakan hari bursa; tanggal libur bursa dapat menghasilkan data kosong. Required.
+	Date string
+}
+
+func (p *LargeOrdersParams) values() url.Values {
+	v := url.Values{}
+	if p == nil {
+		return v
+	}
+	v.Set("date", p.Date)
+	return v
+}
+
+// CandleBrokersParams holds the query parameters of Analysis.GetCandleBrokers. Pointer fields are optional; use invezgo.Ptr(v) to set them.
+type CandleBrokersParams struct {
+	// Tanggal data (`YYYY-MM-DD`). Gunakan hari bursa; tanggal libur bursa dapat menghasilkan data kosong. Required.
+	Date string
+	// Awal jendela waktu (`HH:MM` atau `HH:MM:SS`, WIB). Harus kelipatan menit penuh (detik `:00`). Required.
+	Timefrom string
+	// Akhir jendela waktu inklusif (`HH:MM` atau `HH:MM:SS`, WIB). Harus berakhir di detik `:59`, tidak lebih awal dari `timefrom`, dan maksimal 1 jam dari `timefrom`. Required.
+	Timeto string
+}
+
+func (p *CandleBrokersParams) values() url.Values {
+	v := url.Values{}
+	if p == nil {
+		return v
+	}
+	v.Set("date", p.Date)
+	v.Set("timefrom", p.Timefrom)
+	v.Set("timeto", p.Timeto)
+	return v
+}
+
+// FootprintParams holds the query parameters of Analysis.GetFootprint. Pointer fields are optional; use invezgo.Ptr(v) to set them.
+type FootprintParams struct {
+	// Tanggal data (`YYYY-MM-DD`). Gunakan hari bursa; tanggal libur bursa dapat menghasilkan data kosong. Required.
+	Date string
+}
+
+func (p *FootprintParams) values() url.Values {
+	v := url.Values{}
+	if p == nil {
+		return v
+	}
+	v.Set("date", p.Date)
 	return v
 }
 
@@ -2300,7 +2351,7 @@ type BatchOrderBookParams struct {
 	Market *BatchOrderBookMarket
 	// Tanggal order book historis (`YYYY-MM-DD`), data tersedia mulai `2026-03-25`. Kirim bersama `time`; kosongkan keduanya untuk data realtime.
 	Date *string
-	// Jam order book dalam WIB, format `HH:mm` dengan presisi menit. Kirim bersama `date`.
+	// Jam order book dalam WIB, format `HH:mm` atau `HH:mm:ss`; diambil snapshot terdekat pada tanggal tersebut. Kirim bersama `date`.
 	Time *string
 }
 

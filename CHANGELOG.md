@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## v2.4.0
+
+### Added
+- `Analysis.GetLargeOrders` (`GET /analysis/large-orders/{code}`, realtime): the day's largest aggressor orders (up to 300) with side, lot, value, VWAP, trade count, broker and foreign flag.
+- `Analysis.GetFootprint` (`GET /analysis/footprint/{code}`, realtime): volume per minute per price, split by aggressor side.
+- `Analysis.GetCandleBrokers` (`GET /analysis/candle-brokers/{code}`): aggressive and passive brokers, net per broker and foreign lots for a time window of up to 1 hour.
+- Types: `LargeOrdersParams` / `LargeOrdersResponse`, `FootprintParams` / `FootprintResponse`, `CandleBrokersParams` / `CandleBrokersResponse`.
+
+### Changed
+- `Analysis.GetStockRunningTrade`: `limit` now allows at most 500 rows per page (was 1000).
+- Batch order book: `time` accepts `HH:mm:ss` as well as `HH:mm`; the nearest snapshot on that date is returned.
+
 ## v2.3.0
 
 ### Added
